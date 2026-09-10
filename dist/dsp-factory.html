@@ -9534,7 +9534,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
     var done = cur ? (research.progress || 0) : 0;
     var demand = cur ? (info && info.demand ? info.demand : techDemand(cur)) : 0;
     prog.appendChild(progressBar(demand > 0 ? done / demand : 0));
-    prog.appendChild(h('span', '', fmtAmount(done) + ' / ' + fmtAmount(demand) + ' ' + I18N.t('tech.matrix')));
+    prog.title = cur ? (fmtAmount(done) + ' / ' + fmtAmount(demand) + ' ' + I18N.t('tech.matrix')) : '';
     box.appendChild(prog);
 
     if (cur && (cur.costs || []).length) {
