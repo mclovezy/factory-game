@@ -279,6 +279,11 @@
    * 工作区标签（若 index.html 已提供按钮则复用，否则生成）
    * ============================================================ */
   var WORKSPACES = ['factory', 'galaxy', 'technology', 'statistics', 'dyson', 'codex', 'settings'];
+  /* 工作区名 → 面板 id */
+  var WORKSPACE_PANEL_IDS = {
+    galaxy: 'panel-galaxy', technology: 'panel-technology', statistics: 'panel-statistics',
+    dyson: 'panel-dyson', codex: 'panel-codex', settings: 'panel-settings'
+  };
 
   function buildWorkspaceTabs() {
     var tabs = $('workspace-tabs');
@@ -1095,7 +1100,7 @@
     currentWorkspace = name;
     var panel = $('workspace-panel');
     if (panel) panel.classList.toggle('open', name !== 'factory');
-    var ids = { galaxy: 'panel-galaxy', technology: 'panel-technology', statistics: 'panel-statistics', dyson: 'panel-dyson', codex: 'panel-codex', settings: 'panel-settings' };
+    var ids = WORKSPACE_PANEL_IDS;
     for (var key in ids) {
       if (Object.prototype.hasOwnProperty.call(ids, key)) {
         var el = $(ids[key]);
@@ -1122,11 +1127,46 @@
     if (app) app.workspace = name;
   }
 
+  /**
+   * 滚动位置快照：工作区每秒重绘会把面板内容清空重建，
+   * 高度瞬时归零导致浏览器把 scrollTop 钳回 0（表现就是"下拉后自动回顶"）。
+   * 重绘前记录面板与内部滚动容器的 scrollTop，重建后按 class + 序号还原。
+   */
+  function snapshotScroll(panel, host) {
+    var snap = { panel: panel ? panel.scrollTop : 0, inner: [] };
+    if (!host) return snap;
+    if (host.scrollTop > 0) snap.inner.push({ cls: '', idx: 0, top: host.scrollTop, self: true });
+    var all = host.querySelectorAll('*');
+    var counters = {};
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (!(el.scrollTop > 0)) continue;
+      var cls = String(el.className || '').split(' ')[0];
+      if (!cls) continue;
+      counters[cls] = (counters[cls] || 0) + 1;
+      snap.inner.push({ cls: cls, idx: counters[cls] - 1, top: el.scrollTop, self: false });
+    }
+    return snap;
+  }
+  function restoreScroll(panel, host, snap) {
+    if (!snap) return;
+    if (panel && snap.panel) panel.scrollTop = snap.panel;
+    if (!host || !snap.inner.length) return;
+    for (var i = 0; i < snap.inner.length; i++) {
+      var rec = snap.inner[i];
+      var el = rec.self ? host : host.querySelectorAll('.' + rec.cls)[rec.idx];
+      if (el) el.scrollTop = rec.top;
+    }
+  }
+
   function renderWorkspace(name, force) {
     if (!app) return;
     var now = Date.now();
     if (!force && now - lastHeavyRender < 1000) return;
     lastHeavyRender = now;
+    var panel = $('workspace-panel');
+    var host = $(WORKSPACE_PANEL_IDS[name]);
+    var snap = snapshotScroll(panel, host);
     if (name === 'galaxy') renderGalaxy();
     else if (name === 'technology') renderTechnology();
     else if (name === 'statistics') renderStatistics();
@@ -1134,6 +1174,7 @@
     // 图鉴搜索框输入中不重绘（否则每秒重绘会打断输入）
     else if (name === 'codex') { if (!codex.searchFocus) renderCodex(); }
     else if (name === 'settings') renderSettings();
+    restoreScroll(panel, host, snap);
   }
 
   /* ---------------- 星系 ---------------- */
@@ -2032,7 +2073,7 @@
     { id: 'planets', key: 'codex.tabPlanets' }
   ];
   // 图鉴视图状态（模块级，切 tab / 选中 / 搜索词都在这里，重绘不丢）
-  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, query: '', searchFocus: false };
+  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, query: '', searchFocus: false, sig: '' };
 
   function codexJumpItem(id) {
     codex.tab = 'items'; codex.itemId = id; codex.query = ''; renderCodex();
@@ -2190,9 +2231,28 @@
     host.appendChild(h('p', 'muted codex-hint', text));
   }
 
+  /** 图鉴内容签名：仅当选中/搜索/库存/科技/语言变化时重绘，避免每秒重建打断滚动 */
+  function codexSignature() {
+    var st = app.state || {};
+    var parts = [codex.tab, codex.itemId, codex.buildingId, codex.planetId, codex.query, I18N.t('codex.title')];
+    var stock = st.stock || {}, keys = [];
+    for (var k in stock) if (Object.prototype.hasOwnProperty.call(stock, k)) keys.push(k + ':' + Math.floor(stock[k] || 0));
+    keys.sort();
+    parts.push(keys.join(','));
+    var prod = (st.stats && st.stats.totalProduced) || {}, pk = [];
+    for (var p in prod) if (Object.prototype.hasOwnProperty.call(prod, p)) pk.push(p + ':' + Math.floor(prod[p] || 0));
+    pk.sort();
+    parts.push(pk.join(','));
+    parts.push((st.unlockedTechs || []).length + '/' + (st.galaxyUnlocked || []).length);
+    return parts.join('|');
+  }
+
   function renderCodex() {
     var host = $('panel-codex');
     if (!host) return;
+    var sig = codexSignature();
+    if (sig === codex.sig) return;
+    codex.sig = sig;
     clear(host);
     host.appendChild(h('h2', 'ws-title', I18N.t('codex.title')));
     var tabs = h('div', 'btn-row codex-tabs');
