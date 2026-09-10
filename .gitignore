@@ -1,0 +1,9 @@
+# 工具/临时目录
+.dumate/
+.workbuddy/
+# 本地 AI 协作/记忆文件（仅供本地，不上传 GitHub）
+AGENTS.md
+.workbuddy/memory/
+
+# 过期的根目录单文件构建副本（以 dist/dsp-factory.html 为准）
+/dsp-factory.html
