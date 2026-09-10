@@ -239,9 +239,6 @@
       toggle.title = I18N.t('ui.toggleSidebar');
       toggle.setAttribute('aria-label', I18N.t('ui.toggleSidebar'));
     }
-    var lockHintEl = document.querySelector('.sidebar-locked-hint');
-    var lockText = lockHintEl ? lockHintEl.querySelector('.slh-text') : null;
-    if (lockText) lockText.textContent = I18N.t('sidebar.locked');
     var metricPower = $('metric-power');
     if (metricPower) {
       metricPower.title = I18N.t('topbar.power');
@@ -568,14 +565,6 @@
         var open = document.body.classList.toggle('sidebar-open');
         if (sidebar) sidebar.classList.toggle('open', open);
       };
-    }
-    // 工作区页面锁定提示条（显隐由 CSS body.workspace-open 控制，文本随语言更新）
-    var sidebarHost = $('sidebar');
-    if (sidebarHost && !sidebarHost.querySelector('.sidebar-locked-hint')) {
-      var lockHint = h('div', 'sidebar-locked-hint');
-      lockHint.appendChild(h('span', 'slh-icon', '🔒'));
-      lockHint.appendChild(h('span', 'slh-text', I18N.t('sidebar.locked')));
-      sidebarHost.insertBefore(lockHint, sidebarHost.firstChild);
     }
     // 选项卡切换
     var tabBtns = document.querySelectorAll('#sidebar-tabs .tab-btn');

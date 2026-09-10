@@ -448,7 +448,7 @@ body > #main-area > #canvas-container,
   backdrop-filter: blur(6px);
   border-left: 1px solid var(--border);
   z-index: 20;
-  transition: transform 0.22s ease, opacity 0.18s ease, filter 0.18s ease;
+  transition: transform 0.22s ease;
 }
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   #sidebar { background: var(--panel); }
@@ -532,26 +532,9 @@ body > #main-area > #canvas-container,
 /* 工作区页面打开时隐藏库存坞，避免遮挡 */
 body.workspace-open #stock-dock { display: none; }
 
-/* 建造面板 / 详情卡是工厂页专属：工作区页面下侧栏整体不可交互（并降透明度提示） */
-body.workspace-open #sidebar {
-  pointer-events: none;
-  opacity: 0.5;
-  filter: grayscale(0.5);
-}
-.sidebar-locked-hint {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  margin: 0 8px 6px;
-  padding: 6px 8px;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--muted);
-  background: var(--panel-2);
-  border: 1px dashed var(--border);
-  border-radius: 6px;
-}
-body.workspace-open .sidebar-locked-hint { display: flex; }
+/* 建造面板 / 详情卡是工厂页专属：工作区页面下整条侧栏移除，工作区面板铺满 */
+body.workspace-open #sidebar { display: none; }
+body.workspace-open #workspace-panel { right: 0; }
 
 .panel-title {
   font-weight: 700;
