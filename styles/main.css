@@ -1538,6 +1538,201 @@ html[data-theme='light'] .badge-current { color: #fff; }
 .codex-name { font-size: 12px; font-weight: 600; color: var(--text-strong); }
 .codex-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
+/* —— 图鉴 v2：分区 tab + 主从布局 —— */
+.codex-tabs { margin-bottom: 10px; }
+.codex-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.codex-index {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+.codex-search { display: block; margin-bottom: 8px; }
+.codex-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.codex-search-input:focus { outline: none; border-color: var(--accent); }
+.codex-index-sub {
+  display: block;
+  margin: 8px 4px 4px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.codex-idx-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 7px;
+  margin-bottom: 2px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.codex-idx-item:hover { background: var(--accent-dim); }
+.codex-idx-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.codex-idx-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3) inset;
+}
+.codex-idx-text { min-width: 0; }
+.codex-idx-text strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.codex-idx-text small { display: block; font-size: 10px; color: var(--muted); }
+
+.codex-detail {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+.codex-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.codex-detail-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3) inset;
+}
+.codex-detail-icon { font-size: 22px; line-height: 1; }
+.codex-detail-titles { min-width: 0; }
+.codex-detail-titles strong { display: block; font-size: 15px; color: var(--text-strong); }
+.codex-detail-titles small { display: block; font-size: 11px; color: var(--muted); }
+.codex-detail-badges { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+.codex-detail-desc { font-size: 12px; color: var(--text); margin: 8px 0 10px; }
+.codex-hint { padding: 16px 4px; }
+
+.codex-kvs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.codex-kv {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.codex-kv dt { font-size: 10px; color: var(--muted); }
+.codex-kv dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.codex-block { margin-bottom: 14px; }
+.codex-block-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.codex-block-head strong { font-size: 12px; color: var(--accent-2); letter-spacing: 1px; }
+.codex-block-head small { font-size: 10px; color: var(--muted); }
+.codex-link-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.codex-item-link,
+.codex-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.codex-item-link:hover,
+.codex-text-link:hover { background: var(--accent-dim); border-color: var(--accent); }
+.codex-link-badge { font-style: normal; font-size: 10px; color: var(--muted); }
+
+.codex-recipe {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 5px;
+  padding: 6px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.codex-recipe:hover { background: var(--accent-dim); border-color: var(--accent); }
+.codex-recipe-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.codex-recipe-icon { font-size: 13px; }
+.codex-recipe-head strong { color: var(--text-strong); }
+.codex-recipe-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.codex-arrow { color: var(--muted); }
+.codex-tech-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 11px;
+}
+.codex-tech-name { color: var(--text-strong); }
+.codex-tech-cost { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  .codex-layout { grid-template-columns: 1fr; }
+  .codex-index { max-height: 220px; }
+  .codex-detail { max-height: none; }
+}
+
 /* —— 设置 —— */
 .settings-section {
   background: var(--panel);

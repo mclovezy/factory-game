@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="VGrNsT2W1hagxUtss9gdyb">
-<head data-page-node-id="n8eaLGAmUUcE8hgwP8sjNr">
-  <meta charset="UTF-8" data-page-node-id="6IC3VpKuaDXDGxPKQMwALL">
+<html lang="zh-CN" data-page-node-id="KrHeFSZ6VosgTwqwOMqaCs">
+<head data-page-node-id="KFgRAC3ho4BlkqYF3bBo90">
+  <meta charset="UTF-8" data-page-node-id="6oQ1z9CmDO4oAF8hT07BP8">
   <!-- viewport-fit=cover 适配刘海屏；user-scalable=no 防止双击缩放与画布手势冲突 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="u4OMOSeRFZCpY85NWalZrw">
-  <meta name="theme-color" content="#0b1020" data-page-node-id="xLkDd4cFPjvFjFQEhyx9ZK">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="7rr4XVUlyl4SPRgXq6eyDm">
+  <meta name="theme-color" content="#0b1020" data-page-node-id="2P2qvx8V0DdaRy29O04uJ2">
   <title>星穹工厂 · 挂机自动化</title>
   <style>
 /* ===== styles/main.css ===== */
@@ -1548,6 +1548,201 @@ html[data-theme='light'] .badge-current { color: #fff; }
 .codex-name { font-size: 12px; font-weight: 600; color: var(--text-strong); }
 .codex-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
+/* —— 图鉴 v2：分区 tab + 主从布局 —— */
+.codex-tabs { margin-bottom: 10px; }
+.codex-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.codex-index {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+.codex-search { display: block; margin-bottom: 8px; }
+.codex-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.codex-search-input:focus { outline: none; border-color: var(--accent); }
+.codex-index-sub {
+  display: block;
+  margin: 8px 4px 4px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.codex-idx-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 7px;
+  margin-bottom: 2px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.codex-idx-item:hover { background: var(--accent-dim); }
+.codex-idx-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+.codex-idx-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3) inset;
+}
+.codex-idx-text { min-width: 0; }
+.codex-idx-text strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.codex-idx-text small { display: block; font-size: 10px; color: var(--muted); }
+
+.codex-detail {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+.codex-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.codex-detail-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3) inset;
+}
+.codex-detail-icon { font-size: 22px; line-height: 1; }
+.codex-detail-titles { min-width: 0; }
+.codex-detail-titles strong { display: block; font-size: 15px; color: var(--text-strong); }
+.codex-detail-titles small { display: block; font-size: 11px; color: var(--muted); }
+.codex-detail-badges { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+.codex-detail-desc { font-size: 12px; color: var(--text); margin: 8px 0 10px; }
+.codex-hint { padding: 16px 4px; }
+
+.codex-kvs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  margin: 0 0 12px;
+}
+.codex-kv {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.codex-kv dt { font-size: 10px; color: var(--muted); }
+.codex-kv dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+.codex-block { margin-bottom: 14px; }
+.codex-block-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.codex-block-head strong { font-size: 12px; color: var(--accent-2); letter-spacing: 1px; }
+.codex-block-head small { font-size: 10px; color: var(--muted); }
+.codex-link-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.codex-item-link,
+.codex-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+.codex-item-link:hover,
+.codex-text-link:hover { background: var(--accent-dim); border-color: var(--accent); }
+.codex-link-badge { font-style: normal; font-size: 10px; color: var(--muted); }
+
+.codex-recipe {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 5px;
+  padding: 6px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.codex-recipe:hover { background: var(--accent-dim); border-color: var(--accent); }
+.codex-recipe-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.codex-recipe-icon { font-size: 13px; }
+.codex-recipe-head strong { color: var(--text-strong); }
+.codex-recipe-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.codex-arrow { color: var(--muted); }
+.codex-tech-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+  font-size: 11px;
+}
+.codex-tech-name { color: var(--text-strong); }
+.codex-tech-cost { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  .codex-layout { grid-template-columns: 1fr; }
+  .codex-index { max-height: 220px; }
+  .codex-detail { max-height: none; }
+}
+
 /* —— 设置 —— */
 .settings-section {
   background: var(--panel);
@@ -1672,154 +1867,154 @@ html[data-theme='light'] .badge-current { color: #fff; }
 
 </style>
 </head>
-<body data-page-node-id="AwkHQfEO1aD1Pq3ltcXKMn">
-  <noscript data-page-node-id="HWgk03Bk3HKmf4HR2nOIEz">
-    <div style="padding:24px;color:#dfe7ff;font-family:sans-serif" data-page-node-id="QCAxdnSgg6Sii1m5EAs6YK">
+<body data-page-node-id="lr8g5KQcPWxPHZI0kGQ6gb">
+  <noscript data-page-node-id="YztmJEwDuaGi2H1KDHLmbE">
+    <div style="padding:24px;color:#dfe7ff;font-family:sans-serif" data-page-node-id="SgI7JKxoPUVj26anEBOIbC">
       本游戏需要在浏览器中启用 JavaScript 才能运行。
     </div>
   </noscript>
 
   <!-- 游戏画布（星空 / 矿脉 / 建筑 / 传送带全部由 Canvas 绘制） -->
-  <canvas id="canvas" data-page-node-id="fE9GcazaSz5YEyAH9HTIEw"></canvas>
+  <canvas id="canvas" data-page-node-id="g4x38tp7Ogi7ngWtQYSuf1"></canvas>
 
   <!-- 画布左上角状态胶囊（运行/暂停 + 速度倍率，借鉴 DSPONLINE canvas-status） -->
-  <div id="canvas-status" class="canvas-status" aria-live="polite" data-page-node-id="Zq1MEqnLUu9SGFcVCN2vy0">
-    <span id="canvas-status-text" data-page-node-id="sMgMR4lyEF4dTsfFHLJLcK">运行中</span>
-    <strong id="canvas-status-speed" data-page-node-id="Ni1V8LfOmzJKwWsVU9FtXo">×1</strong>
+  <div id="canvas-status" class="canvas-status" aria-live="polite" data-page-node-id="Ut7NBB0Ape798o1NE7Ug5k">
+    <span id="canvas-status-text" data-page-node-id="I2SFFrfHHBdSjGlkwFcw7U">运行中</span>
+    <strong id="canvas-status-speed" data-page-node-id="oPy2wR5rMbbEf0HhbF1zXY">×1</strong>
   </div>
 
   <!-- ======================= 顶栏 ======================= -->
-  <header id="topbar" data-page-node-id="5QcoE470oj2d53I9jxSuke">
-    <div id="brand" data-page-node-id="Bznh5Qjd2YgNkg3FgCpi4x">星穹工厂</div>
-    <div class="metrics" data-page-node-id="M0NJz2IVAAlqjgRm5jRhdC">
-      <div id="metric-power" class="metric" title="电力" data-page-node-id="G498uXTYeALDlP79AuC0JF">
-        <span class="metric-icon" data-page-node-id="UNDKvspQqRZDjzFykxn6yE">⚡</span>
-        <span class="metric-label" data-page-node-id="pVfZzwuasifHus1IEHwpFF">电力</span>
-        <strong class="metric-value" data-page-node-id="JeVjTs1BSdsgC3XpzYpbRB">--</strong>
-        <span class="metric-sub" data-page-node-id="pDpNrj0BDKn3RCzdOktdFu">--</span>
+  <header id="topbar" data-page-node-id="vBXeUfuvGmi1OxESGw9G3S">
+    <div id="brand" data-page-node-id="3YclmEBsQp6pg7VgdEBg0m">星穹工厂</div>
+    <div class="metrics" data-page-node-id="bGYP3OpGn6KwDrNbvBkGef">
+      <div id="metric-power" class="metric" title="电力" data-page-node-id="FmOCUglF2xvt8d1gcIrnJp">
+        <span class="metric-icon" data-page-node-id="5VExnbfs8GdviIZgVS8nzP">⚡</span>
+        <span class="metric-label" data-page-node-id="KPMI4HwwBgVJ5MGB8UktQ8">电力</span>
+        <strong class="metric-value" data-page-node-id="VmwNJkFkDsQLRV52s7SUR6">--</strong>
+        <span class="metric-sub" data-page-node-id="CG7yUBuO1vgaGeeaqZfi6U">--</span>
       </div>
-      <div id="metric-matrix" class="metric metric--matrix" title="科研矩阵" data-page-node-id="4CUsKMRmB1vJYsQGpB9WVL">
-        <span class="metric-icon" data-page-node-id="o5PCQXAid5lh0Kjgq6KiNL">Σ</span>
-        <span class="metric-label" data-page-node-id="Y3I1Co5q7OTIsxxuS5CkcY">科研矩阵</span>
-        <div class="metric-badges" data-page-node-id="s1FD9gHVWzDQfoE0frkTBb"></div>
+      <div id="metric-matrix" class="metric metric--matrix" title="科研矩阵" data-page-node-id="vYooekeFxF2tBIcPjytoeR">
+        <span class="metric-icon" data-page-node-id="cRQHrYBC2cuRtcBBFjtcRr">Σ</span>
+        <span class="metric-label" data-page-node-id="uciggTYP45Dj83erq0XwZE">科研矩阵</span>
+        <div class="metric-badges" data-page-node-id="l6nJOVi9vXYAW6uzEZVyqI"></div>
       </div>
-      <div id="metric-research" class="metric metric--research" title="当前研究" data-page-node-id="rtkQ5ohR3CL19dvEJQvTRA">
-        <span class="metric-icon" data-page-node-id="XWFGpYQ0KMhVJfL4eDkd8P">🔬</span>
-        <span class="metric-label" data-page-node-id="WuFLsIVEquSkPAk0U5msNC">研究</span>
-        <strong class="metric-value" data-page-node-id="vVPlvJHCbNMB0tBe5FjK3q">--</strong>
-        <span class="metric-sub" data-page-node-id="QfJcC88nV5ziBLv2DCl9AS"><span class="progress research-progress" data-page-node-id="oA2COmCRY6h5BIfDmJrbUN"><span class="progress-fill" data-page-node-id="6gRU0SHTnH2LWjfYgqjAJR"></span></span></span>
+      <div id="metric-research" class="metric metric--research" title="当前研究" data-page-node-id="0mrcOJO9JCQeW3ICrcMBwy">
+        <span class="metric-icon" data-page-node-id="QFVkZVwImuv4osUkoanTa6">🔬</span>
+        <span class="metric-label" data-page-node-id="bCD1BAT4LDJSjVnilpxqCY">研究</span>
+        <strong class="metric-value" data-page-node-id="59KCavkCgfPxouJtu4VYFm">--</strong>
+        <span class="metric-sub" data-page-node-id="lmHABqg60Hyhik6n4UQ2kA"><span class="progress research-progress" data-page-node-id="8MDQbCZRbJNeK5B4d2mu7a"><span class="progress-fill" data-page-node-id="oQHlE0YPLCipkwZHfZemIf"></span></span></span>
       </div>
-      <div id="metric-dyson" class="metric" title="戴森进度" data-page-node-id="c1Sg3zijD9DvfDdSbkPctz">
-        <span class="metric-icon" data-page-node-id="noRH0jlXEIUcfj5pg0UhMi">◉</span>
-        <span class="metric-label" data-page-node-id="1XwT5cKPJsFgGuTASeKPt7">戴森进度</span>
-        <strong class="metric-value" data-page-node-id="NZ1550DrzQ4Bw5xZ1DWsVt">--%</strong>
+      <div id="metric-dyson" class="metric" title="戴森进度" data-page-node-id="1pAYGjooO1SLOYbJVnVuVO">
+        <span class="metric-icon" data-page-node-id="MyZKkc0ZxPDl64VGBqDOGn">◉</span>
+        <span class="metric-label" data-page-node-id="eLf69WldzeMmaktWQIEg0H">戴森进度</span>
+        <strong class="metric-value" data-page-node-id="LmqvSIc5fEtjtyPUGfVLhd">--%</strong>
       </div>
-      <div id="metric-time" class="metric" title="游戏时长" data-page-node-id="AEDPBHhRotRtMPLBGMePsB">
-        <span class="metric-icon" data-page-node-id="hUin7tHXvHITRprrZxdayM">⏱</span>
-        <span class="metric-label" data-page-node-id="8sGHcrveftiQqDxs30Axu9">游戏时长</span>
-        <strong class="metric-value" data-page-node-id="DF8CIB0YQCKHAquT9vokaJ">--:--:--</strong>
+      <div id="metric-time" class="metric" title="游戏时长" data-page-node-id="CzKk8QiflRRr6xCPs31jxO">
+        <span class="metric-icon" data-page-node-id="Ai7nvbH59nB6QyAhzwf1Lt">⏱</span>
+        <span class="metric-label" data-page-node-id="zBL8llBScb8I7Zul8YW02C">游戏时长</span>
+        <strong class="metric-value" data-page-node-id="kHTwMECM6Vu4N4o9Pk13px">--:--:--</strong>
       </div>
     </div>
-    <nav id="workspace-tabs" data-page-node-id="j59Bd4Zhp1rzCI28eqpIil">
-      <button type="button" data-workspace="factory" data-page-node-id="nILndrU8FJ2r6992CUVkAR">工厂</button>
-      <button type="button" data-workspace="galaxy" data-page-node-id="L3ynBOBlvf0cr1QMvK0w04">星系</button>
-      <button type="button" data-workspace="technology" data-page-node-id="DBHHWRvmc9iHrXG2KdFMLT">科技</button>
-      <button type="button" data-workspace="statistics" data-page-node-id="MHPo7zEPawMqYuRPxD1F8e">统计</button>
-      <button type="button" data-workspace="dyson" data-page-node-id="tgeCzlHoLXqkWxRltueL6p">戴森球</button>
-      <button type="button" data-workspace="codex" data-page-node-id="MOXi9TxHwVGcIyA7izMyAW">图鉴</button>
-      <button type="button" data-workspace="settings" data-page-node-id="mtyqKnOmzFGuelzgXCrj7F">设置</button>
+    <nav id="workspace-tabs" data-page-node-id="86NMgQHW7g3evS3BwjNK9W">
+      <button type="button" data-workspace="factory" data-page-node-id="HYwgc3htA03Zg29KoO59k3">工厂</button>
+      <button type="button" data-workspace="galaxy" data-page-node-id="v9k0QnWEodYgEBwftVHWVJ">星系</button>
+      <button type="button" data-workspace="technology" data-page-node-id="OMl9MzRmLD9eshDp0RccZ8">科技</button>
+      <button type="button" data-workspace="statistics" data-page-node-id="cCTxlJZLHW87DFKSSdh5dB">统计</button>
+      <button type="button" data-workspace="dyson" data-page-node-id="P4NwrZRMj7MhNXbX698pOi">戴森球</button>
+      <button type="button" data-workspace="codex" data-page-node-id="qlNaAfvNlQxqBkLAaGx01y">图鉴</button>
+      <button type="button" data-workspace="settings" data-page-node-id="Sm79tTU0YuABC3VqgMUCQK">设置</button>
     </nav>
-    <div class="topbar-actions" data-page-node-id="lGACLEK3bK2Nd2zQxVG3xn">
-      <button id="btn-pause" type="button" title="暂停 / 继续" data-page-node-id="9w0KKQ5EaeBG9dQxYybT8O">⏸</button>
-      <button id="btn-speed" type="button" title="游戏速度" data-page-node-id="fX10rZrabF2Y6XGzSVfZSI">×1</button>
-      <button id="btn-help" type="button" title="帮助" data-page-node-id="wq9Hzl0FR30FVKaDGIW8H2">?</button>
-      <button id="btn-menu" type="button" title="主菜单" data-page-node-id="kJpJLlm0WHC6aUI8UPvg5Q">☰</button>
+    <div class="topbar-actions" data-page-node-id="tO6Ks5ehlIPYz5jRcE1tY2">
+      <button id="btn-pause" type="button" title="暂停 / 继续" data-page-node-id="r2vA7KOF11xw3UqckQOkbW">⏸</button>
+      <button id="btn-speed" type="button" title="游戏速度" data-page-node-id="UpXHH1zYlyWcxGqkgigHJ9">×1</button>
+      <button id="btn-help" type="button" title="帮助" data-page-node-id="T6S1H0QK5ukj9zOvjY5cIo">?</button>
+      <button id="btn-menu" type="button" title="主菜单" data-page-node-id="9qnVhEivuTcPbuE3oKewQK">☰</button>
     </div>
   </header>
 
   <!-- ======================= 左侧固定库存坞（常驻，拖放投放目标） ======================= -->
-  <aside id="stock-dock" data-page-node-id="5LiaFboP9NVYxWhWkSjblW">
-    <div id="stock" class="stock-dock-panel" data-page-node-id="HAMMBDcSqdhHfURh57UmnL"></div>
+  <aside id="stock-dock" data-page-node-id="qGyrn0ouZnauFF43PdLnH1">
+    <div id="stock" class="stock-dock-panel" data-page-node-id="jCAHfTdUf7t9DZRA5HEKH7"></div>
   </aside>
 
   <!-- ======================= 侧栏（建造面板 / 检查器） ======================= -->
-  <aside id="sidebar" data-page-node-id="Z7jY82ekqLoHOeTZT2J1ur">
-    <button id="sidebar-toggle" type="button" title="收起 / 展开侧栏" data-page-node-id="1aBM9x0VEcmGu9crRRt4RG">«</button>
-    <nav id="sidebar-tabs" class="sidebar-tabs" data-page-node-id="MLZH4pLEoZD2RtOAH86vNy">
-      <button type="button" data-tab="palette" class="tab-btn active" data-page-node-id="iU4rewnSyyqWGF9I5u6tKv">建造</button>
-      <button type="button" data-tab="inspector" class="tab-btn" data-page-node-id="O1z0k7Wd1GkxS8HIP4Zqvd">详情</button>
+  <aside id="sidebar" data-page-node-id="xk1ciuSQTnxNFQOE5cVUC3">
+    <button id="sidebar-toggle" type="button" title="收起 / 展开侧栏" data-page-node-id="Yike1LBxIcXL5VDnTrqXCJ">«</button>
+    <nav id="sidebar-tabs" class="sidebar-tabs" data-page-node-id="vdCdxQ2YumXuOSaA4FTNhB">
+      <button type="button" data-tab="palette" class="tab-btn active" data-page-node-id="d06uIU3xr8mXypHMfquPcl">建造</button>
+      <button type="button" data-tab="inspector" class="tab-btn" data-page-node-id="RwnOrFcNQDLHiW6gbKfBfR">详情</button>
     </nav>
-    <div id="sidebar-panels" data-page-node-id="KsEGryTrCZMpmYaMLzAQFF">
-      <div id="palette" class="sidebar-section panel active-tab-panel" data-page-node-id="bMdvhu1UwlBQ8JcExXJJqn"></div>
-      <div id="inspector" class="sidebar-section panel" data-page-node-id="Jxlt19Izqbw9J5aF8isr9G"></div>
+    <div id="sidebar-panels" data-page-node-id="0yr6HDchJRTzDHbzaLY5db">
+      <div id="palette" class="sidebar-section panel active-tab-panel" data-page-node-id="cV9NM4l2NHGn1FhSG9nUp6"></div>
+      <div id="inspector" class="sidebar-section panel" data-page-node-id="Kpf0F0GPlfP3viePdQi8KO"></div>
     </div>
   </aside>
 
   <!-- ======================= 底部状态栏 ======================= -->
-  <footer id="statusbar" data-page-node-id="NH9sSD9PBEWWo8H3jlSlcU">
-    <span id="mode-hint" data-page-node-id="xzCPwAaShRfIACBEZflrgH">选择模式</span>
-    <span id="stat-buildings" data-page-node-id="i6hIR5jp7kFymVNCz5muzF">建筑 0</span>
-    <span id="stat-belts" data-page-node-id="50HVG2ZzAwudT5kqRdSMEN">传送带 0</span>
-    <span id="stat-zoom" data-page-node-id="yWAwNQprizO4hj4qElzoZD">缩放 100%</span>
-    <span id="stat-fps" data-page-node-id="ZnOPJTSXPppC5ccMOtvHxJ">FPS --</span>
+  <footer id="statusbar" data-page-node-id="zFq6CMxl3IeByrpDjaOYfk">
+    <span id="mode-hint" data-page-node-id="T6hkF4aIMj5EBpT1rRfQhZ">选择模式</span>
+    <span id="stat-buildings" data-page-node-id="DFZ0SbMFguAUEmMN0BMJu1">建筑 0</span>
+    <span id="stat-belts" data-page-node-id="T8LsN04ubqSxXQ1F6kVUz5">传送带 0</span>
+    <span id="stat-zoom" data-page-node-id="wXVvlsajtHqIxoryHzKRuV">缩放 100%</span>
+    <span id="stat-fps" data-page-node-id="eSse1fozOSYRZ7snMjRho3">FPS --</span>
   </footer>
 
   <!-- ============ 全屏工作区面板（factory 以外的 6 个，覆盖在画布之上） ============ -->
-  <div id="workspace-panel" data-page-node-id="PRSm8OkWt6BjpEuaD05UCQ">
-    <section id="panel-galaxy" class="workspace-page" data-page-node-id="ymVQ3t5uJ8qgHrEtRRfqbq"></section>
-    <section id="panel-technology" class="workspace-page" data-page-node-id="j3mHZW5Zdq4UZyf6LY8O01"></section>
-    <section id="panel-statistics" class="workspace-page" data-page-node-id="HVfzv60ACMcz6rGAYg2lDC"></section>
-    <section id="panel-dyson" class="workspace-page" data-page-node-id="D6QuYP6En26zbzIyAFq8yF"></section>
-    <section id="panel-codex" class="workspace-page" data-page-node-id="5NEZR6SD0w0ZZ8Osbl8LCF"></section>
-    <section id="panel-settings" class="workspace-page" data-page-node-id="3TABDR9MMg0cohfiCr5lKf"></section>
+  <div id="workspace-panel" data-page-node-id="Y744kSE392hJgyRZWfnN2G">
+    <section id="panel-galaxy" class="workspace-page" data-page-node-id="mMLRqzxgRmHtxMm2u9hkbl"></section>
+    <section id="panel-technology" class="workspace-page" data-page-node-id="KELCdLD0ZLSGvq8AkOODr5"></section>
+    <section id="panel-statistics" class="workspace-page" data-page-node-id="lrblQqb2rdH561k15PINeL"></section>
+    <section id="panel-dyson" class="workspace-page" data-page-node-id="MB8oVXlcYgIlGkhKg9nR35"></section>
+    <section id="panel-codex" class="workspace-page" data-page-node-id="4t1roGFQQqNwhNWXqDLvo1"></section>
+    <section id="panel-settings" class="workspace-page" data-page-node-id="ir2DkYdBuacTKbzmO8HtOs"></section>
   </div>
 
   <!-- ======================= 主菜单覆盖层（显隐由 .overlay.open 类控制，DSP_UI 渲染槽位） ======================= -->
-  <div id="menu-overlay" class="overlay" data-page-node-id="A3g3dPc1isMThWo6MFQReH">
-    <div class="overlay-card" data-page-node-id="XINdG3tC0izaQ2Ilo9RseS">
-      <h2 data-page-node-id="QtHd7x8pU5Iyr2ujJNpbzM">星穹工厂</h2>
-      <p class="menu-sub" data-page-node-id="wXCL1wU6LFQHt146qkGSQG">重启跨恒星文明，从一条矿脉开始。</p>
-      <div id="save-slots" class="menu-slots-section" data-page-node-id="ejZ8HvkFflDFIY8govooQz"></div>
-      <div class="menu-new-section" data-page-node-id="dmqa4b4BoEiogjD7SYysKA">
-        <button id="btn-new-save" type="button" class="btn btn-primary btn-block" data-page-node-id="Vp4zWFaZxIClRUrFezgGKT">新建工厂</button>
+  <div id="menu-overlay" class="overlay" data-page-node-id="0tQXAILBSSRiE9oE0Xx6mx">
+    <div class="overlay-card" data-page-node-id="nmADxiSRmI1T40pXDo6iRU">
+      <h2 data-page-node-id="wgUsVcFGt6qBmZNpaINC4F">星穹工厂</h2>
+      <p class="menu-sub" data-page-node-id="qtTs7CDZXrWq7Sx3CJvpHH">重启跨恒星文明，从一条矿脉开始。</p>
+      <div id="save-slots" class="menu-slots-section" data-page-node-id="HtMS2bs8djIbHkVQstLGP6"></div>
+      <div class="menu-new-section" data-page-node-id="7rleJJrcS0lpDIuEzQXfG3">
+        <button id="btn-new-save" type="button" class="btn btn-primary btn-block" data-page-node-id="g8mt9yGUWeivgiwESlpY91">新建工厂</button>
       </div>
-      <div class="menu-buttons" data-page-node-id="mXGW48avaYwxCwR5BjF8Ur">
-        <button id="btn-export" type="button" class="btn" data-page-node-id="77D9lGqNiBtBfP5bhLAbsN">导出存档</button>
-        <button id="btn-import" type="button" class="btn" data-page-node-id="QGxSqwnoZIw8Flfd0hO0oH">导入存档</button>
-        <input id="import-file" type="file" accept="application/json,.json" style="display:none" data-page-node-id="lsNi5nTQvBsNzk7u7uDj5X">
+      <div class="menu-buttons" data-page-node-id="kV7hz4Y2FzK62tJyhT9bQm">
+        <button id="btn-export" type="button" class="btn" data-page-node-id="GPQ14OYUrognpNqWaEuH9U">导出存档</button>
+        <button id="btn-import" type="button" class="btn" data-page-node-id="GaQwop1BY950JXwDCkXGka">导入存档</button>
+        <input id="import-file" type="file" accept="application/json,.json" style="display:none" data-page-node-id="ag1EpibmSCaB9fovPLzDJp">
       </div>
-      <button id="btn-close-menu" type="button" class="btn btn-primary btn-block" data-page-node-id="8zV3UbAlYNlWv3JnyMNsVF">继续游戏</button>
+      <button id="btn-close-menu" type="button" class="btn btn-primary btn-block" data-page-node-id="1q4WAqn7ZTGkG9recP1NzU">继续游戏</button>
     </div>
   </div>
 
   <!-- ======================= 帮助覆盖层（内容由 DSP_I18N/DSP_UI 渲染） ======================= -->
-  <div id="help-overlay" class="overlay" data-page-node-id="wBz6ALW5wGKFb3yrBtPicc">
-    <div class="overlay-card" data-page-node-id="rY6ktHuaVdiVFBtKWt3MTG">
-      <h2 data-page-node-id="rHH2jhKOGFeXzsM9cxtyXw">操作说明</h2>
-      <div class="help-body" data-page-node-id="Cwnl2JaaRLoDS3z9fsmM15">
-        <p class="help-goal" data-page-node-id="kr75XqCBMxNCtVlFZ6txFs">重建跨恒星工厂：采矿 → 熔炼 → 制造 → 科研矩阵 → 戴森球。</p>
-        <div class="help-line" data-page-node-id="jqZpiTMqbAjDgeYVaAAEys"><span class="help-bullet" data-page-node-id="tNeWzx8pZmqRpxiyuixJ9O">•</span><span data-page-node-id="BNRteSOMjF7wAuFoRcDWfP">拖拽画布平移视野，双指捏合或滚轮缩放。</span></div>
-        <div class="help-line" data-page-node-id="Tx4Dr9okdfGvaGDhZIfiLQ"><span class="help-bullet" data-page-node-id="RCU5SzuGi8XAcXSHnttE6I">•</span><span data-page-node-id="uexpRZqsDw4EK78dOs7AfM">在左侧建造面板选择建筑，点击矿脉或空地放置。</span></div>
-        <div class="help-line" data-page-node-id="RUQ5qZIDWUzkVWSFqD2kyF"><span class="help-bullet" data-page-node-id="MTzt8wvZvRAyHeSuA3oBq2">•</span><span data-page-node-id="ubuOTHoaO4wsIW2Ev5Dgro">拖拽建筑端口连接传送带；点击建筑卡上的配方行（名称 + ▾）可直接选配方，也可在右侧详情面板选择。</span></div>
-        <div class="help-line" data-page-node-id="ewYHcPYSjdujtXsLZwnYXh"><span class="help-bullet" data-page-node-id="m9PM2vh25hmbkGeWXej90W">•</span><span data-page-node-id="y76lZA8zaN4DPAhs9ENvWf">拖拽空白处即可框选（可框中传送带）；平移视野用右键/中键拖拽或双指。</span></div>
-        <div class="help-line" data-page-node-id="hyhJTomm2vaF1iKjXqwcAB"><span class="help-bullet" data-page-node-id="ZvrPUzwr3IZsltutqy17IK">•</span><span data-page-node-id="Pn4HTT7PTnEiZmzGCJUHS0">研究站产出的科研矩阵直接汇入研究库存。</span></div>
-        <div class="help-line" data-page-node-id="ECtYuHHyxXDlsJbc1OV4Vi"><span class="help-bullet" data-page-node-id="A3gLMwTZRMqMTxzR6w0Oq2">•</span><span data-page-node-id="pLAki0JqjjyPnGJcwR2OIJ">电力不足时按发电比例降速，注意扩建电源。</span></div>
+  <div id="help-overlay" class="overlay" data-page-node-id="4twQid3oQAoz0AKudNOUsN">
+    <div class="overlay-card" data-page-node-id="V6Sis509UnMav61z13W0Tm">
+      <h2 data-page-node-id="exK7wd8OsawfLn7qk3aa6V">操作说明</h2>
+      <div class="help-body" data-page-node-id="zUTTnw8bzkJ2SNvLylj5tZ">
+        <p class="help-goal" data-page-node-id="EAQL368sYvQLpgj2DN6l23">重建跨恒星工厂：采矿 → 熔炼 → 制造 → 科研矩阵 → 戴森球。</p>
+        <div class="help-line" data-page-node-id="eRebaPwABpLodHYx1rjKYW"><span class="help-bullet" data-page-node-id="gZ3vGNMzXdR327TFBrzrFo">•</span><span data-page-node-id="yDTRpGT698XIB6xx1kA4MF">拖拽画布平移视野，双指捏合或滚轮缩放。</span></div>
+        <div class="help-line" data-page-node-id="g7LkYYWovelZ4GUpFTciqd"><span class="help-bullet" data-page-node-id="Ns3Q4kBhN5pCGEIFcty02B">•</span><span data-page-node-id="r1SYk7l05FuRCsTHoXQDj1">在左侧建造面板选择建筑，点击矿脉或空地放置。</span></div>
+        <div class="help-line" data-page-node-id="BBvDGGqVEJY2h7FftplW1l"><span class="help-bullet" data-page-node-id="PbJvdeMSzW7WyEbnygKdc3">•</span><span data-page-node-id="RYlSd9LWIVdTEYZAIICQN2">拖拽建筑端口连接传送带；点击建筑卡上的配方行（名称 + ▾）可直接选配方，也可在右侧详情面板选择。</span></div>
+        <div class="help-line" data-page-node-id="wTFBzoW8IGBKlsbdTcjeFV"><span class="help-bullet" data-page-node-id="jPuzWged49fPiVA8fK0uYi">•</span><span data-page-node-id="S5ZhKkGmyvjzCPfPyHiA8i">拖拽空白处即可框选（可框中传送带）；平移视野用右键/中键拖拽或双指。</span></div>
+        <div class="help-line" data-page-node-id="bBtEf3TNn1gHdxaEsjJ96M"><span class="help-bullet" data-page-node-id="68qnJTse50jK9k3DWQTpKZ">•</span><span data-page-node-id="1tCnTGs6Qvn5ph2kdLly21">研究站产出的科研矩阵直接汇入研究库存。</span></div>
+        <div class="help-line" data-page-node-id="qJa6Vt9M5if9VGhRMP9bkh"><span class="help-bullet" data-page-node-id="5jFXl6QRKzU5fmyPeQcca2">•</span><span data-page-node-id="xixP1UAIUKTh2GWFXNoMrg">电力不足时按发电比例降速，注意扩建电源。</span></div>
       </div>
-      <button id="btn-close-help" type="button" class="btn btn-primary" data-page-node-id="FcwIF1r3fWDNmD1BksHMOk">知道了</button>
+      <button id="btn-close-help" type="button" class="btn btn-primary" data-page-node-id="XfgzDWr15YAd2dSdnlD5cd">知道了</button>
     </div>
   </div>
 
   <!-- ======================= 离线结算覆盖层（报告由 DSP_UI.showOffline 渲染） ======================= -->
-  <div id="offline-overlay" class="overlay" data-page-node-id="E4x7DOu4bqe16tSHCzPxLW">
-    <div class="overlay-card" data-page-node-id="5dmgBDEkfGebcnZW58rZzF">
-      <h2 data-page-node-id="FqEkT3cpdFyETYHE8bptdD">离线产出报告</h2>
-      <div id="offline-report" data-page-node-id="S00g7DmBsTVG3nNoztmvzw"></div>
-      <button id="btn-close-offline" type="button" class="btn btn-primary" data-page-node-id="bODNMBLaKU9TSERxfQgHkY">收下</button>
+  <div id="offline-overlay" class="overlay" data-page-node-id="Usv9nx02CxI0uLE42Trc73">
+    <div class="overlay-card" data-page-node-id="obXN4HAId96rCDLU8nhnOs">
+      <h2 data-page-node-id="qLjoecv5XCL8T954Tr2fnz">离线产出报告</h2>
+      <div id="offline-report" data-page-node-id="4XxiLC8HiNhY1vZ8yZTxtq"></div>
+      <button id="btn-close-offline" type="button" class="btn btn-primary" data-page-node-id="KICwpo8lG6x0bFepPyJdoA">收下</button>
     </div>
   </div>
 
   <!-- Toast 通知宿主 -->
-  <div id="toast-host" data-page-node-id="p6qAHv6vf4XX4G1AkiwGHB"></div>
+  <div id="toast-host" data-page-node-id="PFF1STEMuyEor9wS858LTz"></div>
 
   <!-- ============ 经典脚本按依赖顺序加载（顺序即契约，禁止改动） ============
        content → engine → i18n → camera → renderer → input → ui → storage → main -->
@@ -5551,8 +5746,53 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'dyson.sailGoal': '配额 {n} 片',
       'dyson.pointGoal': '配额 {n} 点',
 
-      'codex.title': '物品图鉴',
+      'codex.title': '星穹图鉴',
       'codex.count': '共 {n} 种物品',
+      'codex.countBuilding': '共 {n} 种建筑',
+      'codex.countPlanet': '共 {n} 颗星球',
+      'codex.tabItems': '物品与配方',
+      'codex.tabBuildings': '建筑设施',
+      'codex.tabPlanets': '星球与资源',
+      'codex.searchItems': '搜索物品',
+      'codex.searchBuildings': '搜索建筑',
+      'codex.searchPlanets': '搜索星球',
+      'codex.noMatch': '没有匹配的条目',
+      'codex.stock': '当前库存',
+      'codex.totalProduced': '累计产出',
+      'codex.naturalSources': '天然来源',
+      'codex.noNatural': '无天然矿脉，只能靠合成',
+      'codex.producedBy': '生产方式',
+      'codex.noProducer': '没有配方产出它',
+      'codex.usedIn': '作为原料',
+      'codex.noUse': '没有配方消耗它',
+      'codex.researchUse': '科研用途',
+      'codex.noTechUse': '不被任何科技消耗',
+      'codex.done': '已研究',
+      'codex.duration': '{n}s',
+      'codex.jumpItem': '查看该物品',
+      'codex.unlockTech': '解锁科技',
+      'codex.noTech': '开局即可建造',
+      'codex.buildCost': '建造成本',
+      'codex.noCost': '无建造成本',
+      'codex.recipes': '适用配方',
+      'codex.noRecipes': '该设施不执行物品配方',
+      'codex.powerGen': '发电功率',
+      'codex.powerDemand': '耗电功率',
+      'codex.speed': '运行速度',
+      'codex.capacity': '输入 / 输出容量',
+      'codex.size': '占地',
+      'codex.tier': 'T{n}',
+      'codex.orbit': '轨道',
+      'codex.distance': '距离',
+      'codex.system': '所属星系',
+      'codex.kindMiner': '采集设备',
+      'codex.kindMachine': '生产设备',
+      'codex.kindLab': '科研设备',
+      'codex.kindPower': '电力设施',
+      'codex.kindStorage': '仓储设施',
+      'codex.kindStation': '物流站点',
+      'codex.kindSplitter': '物流分配',
+      'codex.kindDyson': '戴森工程',
       'cat.ore': '矿物',
       'cat.material': '基础材料',
       'cat.component': '机械零件',
@@ -5972,8 +6212,53 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'dyson.sailGoal': 'quota {n}',
       'dyson.pointGoal': 'quota {n}',
 
-      'codex.title': 'Item Codex',
+      'codex.title': 'Codex',
       'codex.count': '{n} items in total',
+      'codex.countBuilding': '{n} buildings in total',
+      'codex.countPlanet': '{n} planets in total',
+      'codex.tabItems': 'Items & Recipes',
+      'codex.tabBuildings': 'Buildings',
+      'codex.tabPlanets': 'Planets & Resources',
+      'codex.searchItems': 'Search items',
+      'codex.searchBuildings': 'Search buildings',
+      'codex.searchPlanets': 'Search planets',
+      'codex.noMatch': 'No matching entry',
+      'codex.stock': 'In stock',
+      'codex.totalProduced': 'Total produced',
+      'codex.naturalSources': 'Natural sources',
+      'codex.noNatural': 'No natural veins — craft only',
+      'codex.producedBy': 'Produced by',
+      'codex.noProducer': 'No recipe produces it',
+      'codex.usedIn': 'Used as input',
+      'codex.noUse': 'No recipe consumes it',
+      'codex.researchUse': 'Research usage',
+      'codex.noTechUse': 'Not consumed by any technology',
+      'codex.done': 'Researched',
+      'codex.duration': '{n}s',
+      'codex.jumpItem': 'View this item',
+      'codex.unlockTech': 'Unlocked by',
+      'codex.noTech': 'Available from the start',
+      'codex.buildCost': 'Build cost',
+      'codex.noCost': 'No build cost',
+      'codex.recipes': 'Available recipes',
+      'codex.noRecipes': 'This facility runs no item recipes',
+      'codex.powerGen': 'Generation',
+      'codex.powerDemand': 'Power demand',
+      'codex.speed': 'Speed',
+      'codex.capacity': 'Input / output capacity',
+      'codex.size': 'Footprint',
+      'codex.tier': 'T{n}',
+      'codex.orbit': 'Orbit',
+      'codex.distance': 'Distance',
+      'codex.system': 'Star system',
+      'codex.kindMiner': 'Extraction',
+      'codex.kindMachine': 'Production',
+      'codex.kindLab': 'Research',
+      'codex.kindPower': 'Power',
+      'codex.kindStorage': 'Storage',
+      'codex.kindStation': 'Logistics station',
+      'codex.kindSplitter': 'Distribution',
+      'codex.kindDyson': 'Dyson engineering',
       'cat.ore': 'Ores',
       'cat.material': 'Materials',
       'cat.component': 'Components',
@@ -9500,7 +9785,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
     else if (name === 'technology') renderTechnology();
     else if (name === 'statistics') renderStatistics();
     else if (name === 'dyson') renderDyson();
-    else if (name === 'codex') renderCodex();
+    // 图鉴搜索框输入中不重绘（否则每秒重绘会打断输入）
+    else if (name === 'codex') { if (!codex.searchFocus) renderCodex(); }
     else if (name === 'settings') renderSettings();
   }
 
@@ -10381,50 +10667,491 @@ html[data-theme='light'] .badge-current { color: #fff; }
     return block;
   }
 
-  /* ---------------- 图鉴 ---------------- */
+  /* ---------------- 图鉴（三分区：物品 / 建筑 / 星球，主从布局，对齐 DSPONLINE 图鉴） ---------------- */
   var CATEGORY_KEYS = {
     ore: 'cat.ore', material: 'cat.material', component: 'cat.component',
     chemical: 'cat.chemical', electronics: 'cat.electronics', fuel: 'cat.fuel',
     dyson: 'cat.dyson', logistics: 'cat.logistics', matrix: 'cat.matrix'
   };
+  var CATEGORY_ORDER = ['ore', 'material', 'component', 'chemical', 'electronics', 'fuel', 'dyson', 'logistics', 'matrix'];
+  var BUILDING_KIND_KEYS = {
+    miner: 'codex.kindMiner', machine: 'codex.kindMachine', lab: 'codex.kindLab',
+    power: 'codex.kindPower', storage: 'codex.kindStorage', station: 'codex.kindStation',
+    splitter: 'codex.kindSplitter', dyson: 'codex.kindDyson'
+  };
+  var BUILDING_KIND_ORDER = ['miner', 'machine', 'lab', 'power', 'storage', 'station', 'splitter', 'dyson'];
+  var CODEX_TABS = [
+    { id: 'items', key: 'codex.tabItems' },
+    { id: 'buildings', key: 'codex.tabBuildings' },
+    { id: 'planets', key: 'codex.tabPlanets' }
+  ];
+  // 图鉴视图状态（模块级，切 tab / 选中 / 搜索词都在这里，重绘不丢）
+  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, query: '', searchFocus: false };
+
+  function codexJumpItem(id) {
+    codex.tab = 'items'; codex.itemId = id; codex.query = ''; renderCodex();
+  }
+  function codexJumpBuilding(id) {
+    codex.tab = 'buildings'; codex.buildingId = id; codex.query = ''; renderCodex();
+  }
+  function codexJumpPlanet(id) {
+    codex.tab = 'planets'; codex.planetId = id; codex.query = ''; renderCodex();
+  }
+  function codexMatch(text) {
+    var q = codex.query ? String(codex.query).toLowerCase() : '';
+    if (!q) return true;
+    return String(text || '').toLowerCase().indexOf(q) >= 0;
+  }
+  function codexSearchBox(phKey) {
+    var wrap = h('label', 'codex-search');
+    var input = document.createElement('input');
+    input.type = 'search';
+    input.className = 'codex-search-input';
+    input.placeholder = I18N.t(phKey);
+    input.value = codex.query;
+    input.oninput = function () { codex.query = input.value; renderCodex(); };
+    input.onfocus = function () { codex.searchFocus = true; };
+    input.onblur = function () { codex.searchFocus = false; };
+    wrap.appendChild(input);
+    return wrap;
+  }
+  // 重绘后把光标还给搜索框（工作区每 1s 重绘一次，不恢复会打断输入）
+  function codexRestoreCaret(host) {
+    if (!codex.searchFocus) return;
+    var el = host.querySelector('.codex-search-input');
+    if (!el) return;
+    try { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+  }
+  function codexIndexItem(active, color, name, sub, onPick) {
+    var btn = h('button', 'codex-idx-item' + (active ? ' active' : ''));
+    btn.type = 'button';
+    var ic = h('i', 'codex-idx-dot');
+    if (color) ic.style.background = color;
+    btn.appendChild(ic);
+    var txt = h('span', 'codex-idx-text');
+    txt.appendChild(h('strong', '', name));
+    if (sub) txt.appendChild(h('small', '', sub));
+    btn.appendChild(txt);
+    btn.onclick = onPick;
+    return btn;
+  }
+  function codexBlock(title, sub) {
+    var sec = h('section', 'codex-block');
+    var head = h('header', 'codex-block-head');
+    head.appendChild(h('strong', '', title));
+    if (sub !== undefined && sub !== null && sub !== '') head.appendChild(h('small', '', String(sub)));
+    sec.appendChild(head);
+    return sec;
+  }
+  function codexKv(label, value) {
+    var row = h('div', 'codex-kv');
+    row.appendChild(h('dt', '', label));
+    row.appendChild(h('dd', '', value));
+    return row;
+  }
+  function codexItemLink(itemId, amount) {
+    var btn = h('button', 'codex-item-link');
+    btn.type = 'button';
+    btn.appendChild(itemChip(itemId, amount === undefined || amount === null ? undefined : '×' + amount));
+    btn.title = I18N.t('codex.jumpItem');
+    btn.onclick = (function (id) { return function () { codexJumpItem(id); }; })(itemId);
+    return btn;
+  }
+  function codexTextLink(text, color, onPick, badge) {
+    var btn = h('button', 'codex-text-link');
+    btn.type = 'button';
+    if (color) {
+      var d = h('span', 'item-dot');
+      d.style.background = color;
+      btn.appendChild(d);
+    }
+    btn.appendChild(h('span', '', text));
+    if (badge) btn.appendChild(h('em', 'codex-link-badge', badge));
+    btn.onclick = onPick;
+    return btn;
+  }
+  function codexBadge(text, ok) {
+    return h('span', ok ? 'badge badge-ok' : 'badge badge-locked', text);
+  }
+  /* 配方行：target='building' 点击跳建筑，否则跳主产物物品 */
+  function codexRecipeRow(r, target) {
+    var C = app.content;
+    var b = C.building(r.buildingId) || { name: r.buildingId, icon: '' };
+    var row = h('button', 'codex-recipe');
+    row.type = 'button';
+    var head = h('div', 'codex-recipe-head');
+    head.appendChild(h('i', 'codex-recipe-icon', b.icon || ''));
+    head.appendChild(h('strong', '', b.name));
+    head.appendChild(h('span', 'muted', I18N.t('codex.duration', { n: r.duration })));
+    if (r.requiredTechId) {
+      var t = C.tech(r.requiredTechId);
+      var done = (app.state.unlockedTechs || []).indexOf(r.requiredTechId) >= 0;
+      head.appendChild(codexBadge(t ? t.name : r.requiredTechId, done));
+    }
+    row.appendChild(head);
+    var line = h('div', 'codex-recipe-line');
+    var i;
+    for (i = 0; i < (r.inputs || []).length; i++) line.appendChild(itemChip(r.inputs[i].itemId, '×' + r.inputs[i].amount));
+    line.appendChild(h('span', 'codex-arrow', '→'));
+    for (i = 0; i < (r.outputs || []).length; i++) line.appendChild(itemChip(r.outputs[i].itemId, '×' + r.outputs[i].amount));
+    row.appendChild(line);
+    row.onclick = (function (rec) {
+      return function () {
+        if (target === 'building') codexJumpBuilding(rec.buildingId);
+        else codexJumpItem((rec.outputs && rec.outputs[0] && rec.outputs[0].itemId) || rec.id);
+      };
+    })(r);
+    return row;
+  }
+  function codexRecipesProducing(itemId) {
+    var R = app.content.RECIPES || {}, out = [];
+    for (var k in R) {
+      if (!Object.prototype.hasOwnProperty.call(R, k)) continue;
+      var os = R[k].outputs || [];
+      for (var i = 0; i < os.length; i++) if (os[i].itemId === itemId) { out.push(R[k]); break; }
+    }
+    return out;
+  }
+  function codexRecipesConsuming(itemId) {
+    var R = app.content.RECIPES || {}, out = [];
+    for (var k in R) {
+      if (!Object.prototype.hasOwnProperty.call(R, k)) continue;
+      var ins = R[k].inputs || [];
+      for (var i = 0; i < ins.length; i++) if (ins[i].itemId === itemId) { out.push(R[k]); break; }
+    }
+    return out;
+  }
+  function codexTechsUsing(itemId) {
+    var T = app.content.TECHNOLOGIES || {}, out = [];
+    for (var k in T) {
+      if (!Object.prototype.hasOwnProperty.call(T, k)) continue;
+      var cs = T[k].costs || [];
+      for (var i = 0; i < cs.length; i++) {
+        if (cs[i].itemId === itemId) { out.push({ tech: T[k], amount: cs[i].amount }); break; }
+      }
+    }
+    return out;
+  }
+  function codexPlanetsWithOre(itemId) {
+    var P = app.content.PLANETS || {}, out = [];
+    for (var k in P) {
+      if (!Object.prototype.hasOwnProperty.call(P, k)) continue;
+      if ((P[k].oreTypes || []).indexOf(itemId) >= 0) out.push(P[k]);
+    }
+    return out;
+  }
+  function codexIndexHint(host, text) {
+    host.appendChild(h('p', 'muted codex-hint', text));
+  }
+
   function renderCodex() {
     var host = $('panel-codex');
     if (!host) return;
     clear(host);
     host.appendChild(h('h2', 'ws-title', I18N.t('codex.title')));
-    var groups = app.content.itemsByCategory();
-    var total = 0;
-    var seen = [];
-    for (var g in groups) if (Object.prototype.hasOwnProperty.call(groups, g)) seen.push(g);
-    // 固定分类顺序
-    var order = ['ore', 'material', 'component', 'chemical', 'electronics', 'fuel', 'dyson', 'logistics', 'matrix'];
-    seen.sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); });
-
-    for (var i = 0; i < seen.length; i++) {
-      var cat = seen[i];
-      var items = groups[cat] || [];
-      total += items.length;
-      var sec = h('section', 'codex-section');
-      sec.appendChild(h('h3', 'codex-cat', I18N.t(CATEGORY_KEYS[cat] || cat) + ' · ' + items.length));
-      var grid = h('div', 'codex-grid');
-      for (var j = 0; j < items.length; j++) {
-        var it = items[j];
-        var card = h('div', 'codex-item');
-        var top = h('div', 'codex-item-head');
-        var swatch = h('span', 'codex-swatch');
-        swatch.style.background = it.color;
-        top.appendChild(swatch);
-        top.appendChild(h('span', 'codex-symbol', it.symbol || ''));
-        top.appendChild(h('span', 'codex-name', it.name));
-        card.appendChild(top);
-        card.appendChild(h('p', 'codex-desc', it.description || ''));
-        card.title = it.id;
-        grid.appendChild(card);
-      }
-      sec.appendChild(grid);
-      host.appendChild(sec);
+    var tabs = h('div', 'btn-row codex-tabs');
+    for (var i = 0; i < CODEX_TABS.length; i++) {
+      (function (tab) {
+        var btn = h('button', 'btn btn-sm' + (codex.tab === tab.id ? ' btn-primary' : ''), I18N.t(tab.key));
+        btn.type = 'button';
+        btn.onclick = function () { codex.tab = tab.id; codex.query = ''; renderCodex(); };
+        tabs.appendChild(btn);
+      })(CODEX_TABS[i]);
     }
-    host.insertBefore(h('div', 'muted codex-count', I18N.t('codex.count', { n: total })), host.children[1] || null);
+    host.appendChild(tabs);
+    if (codex.tab === 'buildings') renderCodexBuildings(host);
+    else if (codex.tab === 'planets') renderCodexPlanets(host);
+    else renderCodexItems(host);
+    codexRestoreCaret(host);
+  }
+
+  /* -------- 物品分区 -------- */
+  function renderCodexItems(host) {
+    var C = app.content;
+    var groups = C.itemsByCategory();
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchItems'));
+
+    var firstId = null, total = 0;
+    for (var ci = 0; ci < CATEGORY_ORDER.length; ci++) {
+      var cat = CATEGORY_ORDER[ci];
+      var all = groups[cat] || [];
+      var items = [];
+      for (var ai = 0; ai < all.length; ai++) {
+        if (codexMatch(all[ai].name) || codexMatch(all[ai].id)) items.push(all[ai]);
+      }
+      if (!items.length) continue;
+      total += items.length;
+      if (!firstId) firstId = items[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', I18N.t(CATEGORY_KEYS[cat] || cat) + ' · ' + items.length));
+      for (var ii = 0; ii < items.length; ii++) {
+        (function (it) {
+          aside.appendChild(codexIndexItem(codex.itemId === it.id, it.color, it.name, it.symbol || '', function () { codexJumpItem(it.id); }));
+        })(items[ii]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.count', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.itemId && C.ITEMS[codex.itemId]) ? codex.itemId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.itemId = id;
+      var it = C.item(id);
+      var head = h('header', 'codex-detail-head');
+      var sw = h('span', 'codex-detail-swatch');
+      sw.style.background = it.color;
+      head.appendChild(sw);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', (it.symbol ? '[' + it.symbol + '] ' : '') + it.name));
+      titles.appendChild(h('small', '', I18N.t(CATEGORY_KEYS[it.category] || it.category)));
+      head.appendChild(titles);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', it.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      dl.appendChild(codexKv(I18N.t('codex.stock'), fmtAmount((app.state.stock || {})[id] || 0)));
+      var produced = (app.state.stats && app.state.stats.totalProduced) || {};
+      dl.appendChild(codexKv(I18N.t('codex.totalProduced'), fmtAmount(produced[id] || 0)));
+      detail.appendChild(dl);
+
+      // 天然来源（哪些行星的矿脉里有它）
+      var planets = codexPlanetsWithOre(id);
+      var srcSec = codexBlock(I18N.t('codex.naturalSources'), planets.length ? planets.length : '');
+      if (!planets.length) {
+        srcSec.appendChild(h('p', 'muted', I18N.t('codex.noNatural')));
+      } else {
+        var pgrid = h('div', 'codex-link-grid');
+        for (var pi = 0; pi < planets.length; pi++) {
+          (function (pl) {
+            var sysUnlocked = (app.state.galaxyUnlocked || []).indexOf(pl.systemId) >= 0;
+            pgrid.appendChild(codexTextLink(pl.name, pl.color, function () { codexJumpPlanet(pl.id); }, sysUnlocked ? '' : I18N.t('galaxy.locked')));
+          })(planets[pi]);
+        }
+        srcSec.appendChild(pgrid);
+      }
+      detail.appendChild(srcSec);
+
+      // 生产方式
+      var prodSec = codexBlock(I18N.t('codex.producedBy'), '');
+      var made = codexRecipesProducing(id);
+      if (!made.length) prodSec.appendChild(h('p', 'muted', I18N.t('codex.noProducer')));
+      for (var mi = 0; mi < made.length; mi++) prodSec.appendChild(codexRecipeRow(made[mi], 'building'));
+      detail.appendChild(prodSec);
+
+      // 作为原料
+      var useSec = codexBlock(I18N.t('codex.usedIn'), '');
+      var used = codexRecipesConsuming(id);
+      if (!used.length) useSec.appendChild(h('p', 'muted', I18N.t('codex.noUse')));
+      for (var ui = 0; ui < used.length; ui++) useSec.appendChild(codexRecipeRow(used[ui], 'item'));
+      detail.appendChild(useSec);
+
+      // 科研用途
+      var techSec = codexBlock(I18N.t('codex.researchUse'), '');
+      var tus = codexTechsUsing(id);
+      if (!tus.length) techSec.appendChild(h('p', 'muted', I18N.t('codex.noTechUse')));
+      for (var ti = 0; ti < tus.length; ti++) {
+        (function (entry) {
+          var done = (app.state.unlockedTechs || []).indexOf(entry.tech.id) >= 0;
+          var row = h('div', 'codex-tech-row');
+          row.appendChild(codexBadge(done ? I18N.t('codex.done') : I18N.t('common.lock'), done));
+          row.appendChild(h('span', 'codex-tech-name', entry.tech.name));
+          row.appendChild(h('span', 'codex-tech-cost', '×' + entry.amount));
+          techSec.appendChild(row);
+        })(tus[ti]);
+      }
+      detail.appendChild(techSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
+  }
+
+  /* -------- 建筑分区 -------- */
+  function renderCodexBuildings(host) {
+    var C = app.content;
+    var order = C.BUILDING_ORDER || [];
+    var byKind = {};
+    var list = [];
+    var i, b;
+    for (i = 0; i < order.length; i++) {
+      b = C.building(order[i]);
+      if (b) list.push(b);
+    }
+    // 兜底：BUILDING_ORDER 之外的建筑也列出来
+    for (var k in C.BUILDINGS) {
+      if (Object.prototype.hasOwnProperty.call(C.BUILDINGS, k) && order.indexOf(k) < 0) list.push(C.BUILDINGS[k]);
+    }
+    for (i = 0; i < list.length; i++) {
+      var kind = list[i].kind || 'machine';
+      if (!byKind[kind]) byKind[kind] = [];
+      byKind[kind].push(list[i]);
+    }
+
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchBuildings'));
+    var firstId = null, total = 0;
+    var kinds = BUILDING_KIND_ORDER.slice();
+    for (var kk in byKind) if (Object.prototype.hasOwnProperty.call(byKind, kk) && kinds.indexOf(kk) < 0) kinds.push(kk);
+    for (var ki = 0; ki < kinds.length; ki++) {
+      var arr = byKind[kinds[ki]] || [];
+      var vis = [];
+      for (i = 0; i < arr.length; i++) if (codexMatch(arr[i].name) || codexMatch(arr[i].id)) vis.push(arr[i]);
+      if (!vis.length) continue;
+      total += vis.length;
+      if (!firstId) firstId = vis[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', I18N.t(BUILDING_KIND_KEYS[kinds[ki]] || kinds[ki]) + ' · ' + vis.length));
+      for (i = 0; i < vis.length; i++) {
+        (function (bd) {
+          aside.appendChild(codexIndexItem(codex.buildingId === bd.id, bd.color, bd.name, bd.shortName || '', function () { codexJumpBuilding(bd.id); }));
+        })(vis[i]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.countBuilding', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.buildingId && C.BUILDINGS[codex.buildingId]) ? codex.buildingId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.buildingId = id;
+      var bb = C.building(id);
+      var head = h('header', 'codex-detail-head');
+      var icon = h('span', 'codex-detail-icon', bb.icon || '');
+      icon.style.color = bb.color;
+      head.appendChild(icon);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', bb.name));
+      titles.appendChild(h('small', '', I18N.t(BUILDING_KIND_KEYS[bb.kind] || bb.kind) + ' · ' + I18N.t('codex.tier', { n: bb.tier || 1 })));
+      head.appendChild(titles);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', bb.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      if (bb.powerGenerationKw) dl.appendChild(codexKv(I18N.t('codex.powerGen'), fmtKw(bb.powerGenerationKw)));
+      else if (bb.powerDemandKw) dl.appendChild(codexKv(I18N.t('codex.powerDemand'), fmtKw(bb.powerDemandKw)));
+      if (bb.speed) dl.appendChild(codexKv(I18N.t('codex.speed'), '×' + bb.speed));
+      if (bb.inputCapacity || bb.outputCapacity) dl.appendChild(codexKv(I18N.t('codex.capacity'), (bb.inputCapacity || 0) + ' / ' + (bb.outputCapacity || 0)));
+      dl.appendChild(codexKv(I18N.t('codex.size'), (bb.w || 0) + ' × ' + (bb.h || 0)));
+      detail.appendChild(dl);
+
+      // 解锁科技
+      var techSec = codexBlock(I18N.t('codex.unlockTech'), '');
+      if (!bb.techId) techSec.appendChild(h('p', 'muted', I18N.t('codex.noTech')));
+      else {
+        var tt = C.tech(bb.techId);
+        var done = (app.state.unlockedTechs || []).indexOf(bb.techId) >= 0;
+        var trow = h('div', 'codex-tech-row');
+        trow.appendChild(codexBadge(done ? I18N.t('codex.done') : I18N.t('common.lock'), done));
+        trow.appendChild(h('span', 'codex-tech-name', tt ? tt.name : bb.techId));
+        techSec.appendChild(trow);
+      }
+      detail.appendChild(techSec);
+
+      // 建造成本
+      var costSec = codexBlock(I18N.t('codex.buildCost'), (bb.costs || []).length);
+      if (!(bb.costs || []).length) costSec.appendChild(h('p', 'muted', I18N.t('codex.noCost')));
+      else {
+        var cgrid = h('div', 'codex-link-grid');
+        for (i = 0; i < bb.costs.length; i++) cgrid.appendChild(codexItemLink(bb.costs[i].itemId, bb.costs[i].amount));
+        costSec.appendChild(cgrid);
+      }
+      detail.appendChild(costSec);
+
+      // 适用配方
+      var recSec = codexBlock(I18N.t('codex.recipes'), '');
+      var recipes = C.recipesForBuilding(id) || [];
+      if (!recipes.length) recSec.appendChild(h('p', 'muted', I18N.t('codex.noRecipes')));
+      for (i = 0; i < recipes.length; i++) recSec.appendChild(codexRecipeRow(recipes[i], 'item'));
+      detail.appendChild(recSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
+  }
+
+  /* -------- 星球分区 -------- */
+  function renderCodexPlanets(host) {
+    var C = app.content;
+    var systems = C.STAR_SYSTEMS || {};
+    var planets = C.PLANETS || {};
+    var unlocked = app.state.galaxyUnlocked || [];
+
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchPlanets'));
+    var firstId = null, total = 0;
+    for (var sid in systems) {
+      if (!Object.prototype.hasOwnProperty.call(systems, sid)) continue;
+      var vis = [];
+      for (var pid in planets) {
+        if (!Object.prototype.hasOwnProperty.call(planets, pid)) continue;
+        var pl = planets[pid];
+        if (pl.systemId !== sid) continue;
+        if (codexMatch(pl.name) || codexMatch(pl.code) || codexMatch(pl.environment)) vis.push(pl);
+      }
+      if (!vis.length) continue;
+      total += vis.length;
+      if (!firstId) firstId = vis[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', systems[sid].name + ' · ' + vis.length));
+      for (var vi = 0; vi < vis.length; vi++) {
+        (function (p) {
+          aside.appendChild(codexIndexItem(codex.planetId === p.id, p.color, p.name, p.code || '', function () { codexJumpPlanet(p.id); }));
+        })(vis[vi]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.countPlanet', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.planetId && C.PLANETS[codex.planetId]) ? codex.planetId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.planetId = id;
+      var p = C.planet(id);
+      var sys = systems[p.systemId] || {};
+      var sysUnlocked = unlocked.indexOf(p.systemId) >= 0;
+      var head = h('header', 'codex-detail-head');
+      var dot = h('span', 'codex-detail-swatch');
+      dot.style.background = p.color;
+      head.appendChild(dot);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', p.name + (p.code ? ' · ' + p.code : '')));
+      titles.appendChild(h('small', '', sys.name ? sys.name : ''));
+      head.appendChild(titles);
+      var badges = h('span', 'codex-detail-badges');
+      if (p.isHome) badges.appendChild(h('span', 'badge', I18N.t('galaxy.home')));
+      if (app.state.planetId === p.id) badges.appendChild(h('span', 'badge badge-current', I18N.t('galaxy.here')));
+      if (!sysUnlocked) badges.appendChild(codexBadge(I18N.t('galaxy.locked'), false));
+      head.appendChild(badges);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', p.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      dl.appendChild(codexKv(I18N.t('galaxy.environment'), p.environment || '—'));
+      dl.appendChild(codexKv(I18N.t('galaxy.solar'), '×' + (p.solarMultiplier || 1)));
+      dl.appendChild(codexKv(I18N.t('codex.orbit'), '#' + (p.orbitIndex || 1)));
+      dl.appendChild(codexKv(I18N.t('codex.distance'), (sys.distanceLy || 0) + ' ly'));
+      detail.appendChild(dl);
+
+      var oreSec = codexBlock(I18N.t('galaxy.ores'), (p.oreTypes || []).length);
+      var ogrid = h('div', 'codex-link-grid');
+      if (!(p.oreTypes || []).length) ogrid.appendChild(h('span', 'muted', I18N.t('galaxy.noOres')));
+      for (var oi = 0; oi < (p.oreTypes || []).length; oi++) ogrid.appendChild(codexItemLink(p.oreTypes[oi]));
+      oreSec.appendChild(ogrid);
+      detail.appendChild(oreSec);
+
+      var sysSec = codexBlock(I18N.t('codex.system'), '');
+      sysSec.appendChild(h('p', 'codex-detail-desc', sys.description || ''));
+      if (!sysUnlocked) sysSec.appendChild(h('p', 'muted', I18N.t('galaxy.unlockHint')));
+      detail.appendChild(sysSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
   }
 
   /* ============================================================

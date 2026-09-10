@@ -1131,7 +1131,8 @@
     else if (name === 'technology') renderTechnology();
     else if (name === 'statistics') renderStatistics();
     else if (name === 'dyson') renderDyson();
-    else if (name === 'codex') renderCodex();
+    // 图鉴搜索框输入中不重绘（否则每秒重绘会打断输入）
+    else if (name === 'codex') { if (!codex.searchFocus) renderCodex(); }
     else if (name === 'settings') renderSettings();
   }
 
@@ -2012,50 +2013,491 @@
     return block;
   }
 
-  /* ---------------- 图鉴 ---------------- */
+  /* ---------------- 图鉴（三分区：物品 / 建筑 / 星球，主从布局，对齐 DSPONLINE 图鉴） ---------------- */
   var CATEGORY_KEYS = {
     ore: 'cat.ore', material: 'cat.material', component: 'cat.component',
     chemical: 'cat.chemical', electronics: 'cat.electronics', fuel: 'cat.fuel',
     dyson: 'cat.dyson', logistics: 'cat.logistics', matrix: 'cat.matrix'
   };
+  var CATEGORY_ORDER = ['ore', 'material', 'component', 'chemical', 'electronics', 'fuel', 'dyson', 'logistics', 'matrix'];
+  var BUILDING_KIND_KEYS = {
+    miner: 'codex.kindMiner', machine: 'codex.kindMachine', lab: 'codex.kindLab',
+    power: 'codex.kindPower', storage: 'codex.kindStorage', station: 'codex.kindStation',
+    splitter: 'codex.kindSplitter', dyson: 'codex.kindDyson'
+  };
+  var BUILDING_KIND_ORDER = ['miner', 'machine', 'lab', 'power', 'storage', 'station', 'splitter', 'dyson'];
+  var CODEX_TABS = [
+    { id: 'items', key: 'codex.tabItems' },
+    { id: 'buildings', key: 'codex.tabBuildings' },
+    { id: 'planets', key: 'codex.tabPlanets' }
+  ];
+  // 图鉴视图状态（模块级，切 tab / 选中 / 搜索词都在这里，重绘不丢）
+  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, query: '', searchFocus: false };
+
+  function codexJumpItem(id) {
+    codex.tab = 'items'; codex.itemId = id; codex.query = ''; renderCodex();
+  }
+  function codexJumpBuilding(id) {
+    codex.tab = 'buildings'; codex.buildingId = id; codex.query = ''; renderCodex();
+  }
+  function codexJumpPlanet(id) {
+    codex.tab = 'planets'; codex.planetId = id; codex.query = ''; renderCodex();
+  }
+  function codexMatch(text) {
+    var q = codex.query ? String(codex.query).toLowerCase() : '';
+    if (!q) return true;
+    return String(text || '').toLowerCase().indexOf(q) >= 0;
+  }
+  function codexSearchBox(phKey) {
+    var wrap = h('label', 'codex-search');
+    var input = document.createElement('input');
+    input.type = 'search';
+    input.className = 'codex-search-input';
+    input.placeholder = I18N.t(phKey);
+    input.value = codex.query;
+    input.oninput = function () { codex.query = input.value; renderCodex(); };
+    input.onfocus = function () { codex.searchFocus = true; };
+    input.onblur = function () { codex.searchFocus = false; };
+    wrap.appendChild(input);
+    return wrap;
+  }
+  // 重绘后把光标还给搜索框（工作区每 1s 重绘一次，不恢复会打断输入）
+  function codexRestoreCaret(host) {
+    if (!codex.searchFocus) return;
+    var el = host.querySelector('.codex-search-input');
+    if (!el) return;
+    try { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+  }
+  function codexIndexItem(active, color, name, sub, onPick) {
+    var btn = h('button', 'codex-idx-item' + (active ? ' active' : ''));
+    btn.type = 'button';
+    var ic = h('i', 'codex-idx-dot');
+    if (color) ic.style.background = color;
+    btn.appendChild(ic);
+    var txt = h('span', 'codex-idx-text');
+    txt.appendChild(h('strong', '', name));
+    if (sub) txt.appendChild(h('small', '', sub));
+    btn.appendChild(txt);
+    btn.onclick = onPick;
+    return btn;
+  }
+  function codexBlock(title, sub) {
+    var sec = h('section', 'codex-block');
+    var head = h('header', 'codex-block-head');
+    head.appendChild(h('strong', '', title));
+    if (sub !== undefined && sub !== null && sub !== '') head.appendChild(h('small', '', String(sub)));
+    sec.appendChild(head);
+    return sec;
+  }
+  function codexKv(label, value) {
+    var row = h('div', 'codex-kv');
+    row.appendChild(h('dt', '', label));
+    row.appendChild(h('dd', '', value));
+    return row;
+  }
+  function codexItemLink(itemId, amount) {
+    var btn = h('button', 'codex-item-link');
+    btn.type = 'button';
+    btn.appendChild(itemChip(itemId, amount === undefined || amount === null ? undefined : '×' + amount));
+    btn.title = I18N.t('codex.jumpItem');
+    btn.onclick = (function (id) { return function () { codexJumpItem(id); }; })(itemId);
+    return btn;
+  }
+  function codexTextLink(text, color, onPick, badge) {
+    var btn = h('button', 'codex-text-link');
+    btn.type = 'button';
+    if (color) {
+      var d = h('span', 'item-dot');
+      d.style.background = color;
+      btn.appendChild(d);
+    }
+    btn.appendChild(h('span', '', text));
+    if (badge) btn.appendChild(h('em', 'codex-link-badge', badge));
+    btn.onclick = onPick;
+    return btn;
+  }
+  function codexBadge(text, ok) {
+    return h('span', ok ? 'badge badge-ok' : 'badge badge-locked', text);
+  }
+  /* 配方行：target='building' 点击跳建筑，否则跳主产物物品 */
+  function codexRecipeRow(r, target) {
+    var C = app.content;
+    var b = C.building(r.buildingId) || { name: r.buildingId, icon: '' };
+    var row = h('button', 'codex-recipe');
+    row.type = 'button';
+    var head = h('div', 'codex-recipe-head');
+    head.appendChild(h('i', 'codex-recipe-icon', b.icon || ''));
+    head.appendChild(h('strong', '', b.name));
+    head.appendChild(h('span', 'muted', I18N.t('codex.duration', { n: r.duration })));
+    if (r.requiredTechId) {
+      var t = C.tech(r.requiredTechId);
+      var done = (app.state.unlockedTechs || []).indexOf(r.requiredTechId) >= 0;
+      head.appendChild(codexBadge(t ? t.name : r.requiredTechId, done));
+    }
+    row.appendChild(head);
+    var line = h('div', 'codex-recipe-line');
+    var i;
+    for (i = 0; i < (r.inputs || []).length; i++) line.appendChild(itemChip(r.inputs[i].itemId, '×' + r.inputs[i].amount));
+    line.appendChild(h('span', 'codex-arrow', '→'));
+    for (i = 0; i < (r.outputs || []).length; i++) line.appendChild(itemChip(r.outputs[i].itemId, '×' + r.outputs[i].amount));
+    row.appendChild(line);
+    row.onclick = (function (rec) {
+      return function () {
+        if (target === 'building') codexJumpBuilding(rec.buildingId);
+        else codexJumpItem((rec.outputs && rec.outputs[0] && rec.outputs[0].itemId) || rec.id);
+      };
+    })(r);
+    return row;
+  }
+  function codexRecipesProducing(itemId) {
+    var R = app.content.RECIPES || {}, out = [];
+    for (var k in R) {
+      if (!Object.prototype.hasOwnProperty.call(R, k)) continue;
+      var os = R[k].outputs || [];
+      for (var i = 0; i < os.length; i++) if (os[i].itemId === itemId) { out.push(R[k]); break; }
+    }
+    return out;
+  }
+  function codexRecipesConsuming(itemId) {
+    var R = app.content.RECIPES || {}, out = [];
+    for (var k in R) {
+      if (!Object.prototype.hasOwnProperty.call(R, k)) continue;
+      var ins = R[k].inputs || [];
+      for (var i = 0; i < ins.length; i++) if (ins[i].itemId === itemId) { out.push(R[k]); break; }
+    }
+    return out;
+  }
+  function codexTechsUsing(itemId) {
+    var T = app.content.TECHNOLOGIES || {}, out = [];
+    for (var k in T) {
+      if (!Object.prototype.hasOwnProperty.call(T, k)) continue;
+      var cs = T[k].costs || [];
+      for (var i = 0; i < cs.length; i++) {
+        if (cs[i].itemId === itemId) { out.push({ tech: T[k], amount: cs[i].amount }); break; }
+      }
+    }
+    return out;
+  }
+  function codexPlanetsWithOre(itemId) {
+    var P = app.content.PLANETS || {}, out = [];
+    for (var k in P) {
+      if (!Object.prototype.hasOwnProperty.call(P, k)) continue;
+      if ((P[k].oreTypes || []).indexOf(itemId) >= 0) out.push(P[k]);
+    }
+    return out;
+  }
+  function codexIndexHint(host, text) {
+    host.appendChild(h('p', 'muted codex-hint', text));
+  }
+
   function renderCodex() {
     var host = $('panel-codex');
     if (!host) return;
     clear(host);
     host.appendChild(h('h2', 'ws-title', I18N.t('codex.title')));
-    var groups = app.content.itemsByCategory();
-    var total = 0;
-    var seen = [];
-    for (var g in groups) if (Object.prototype.hasOwnProperty.call(groups, g)) seen.push(g);
-    // 固定分类顺序
-    var order = ['ore', 'material', 'component', 'chemical', 'electronics', 'fuel', 'dyson', 'logistics', 'matrix'];
-    seen.sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); });
-
-    for (var i = 0; i < seen.length; i++) {
-      var cat = seen[i];
-      var items = groups[cat] || [];
-      total += items.length;
-      var sec = h('section', 'codex-section');
-      sec.appendChild(h('h3', 'codex-cat', I18N.t(CATEGORY_KEYS[cat] || cat) + ' · ' + items.length));
-      var grid = h('div', 'codex-grid');
-      for (var j = 0; j < items.length; j++) {
-        var it = items[j];
-        var card = h('div', 'codex-item');
-        var top = h('div', 'codex-item-head');
-        var swatch = h('span', 'codex-swatch');
-        swatch.style.background = it.color;
-        top.appendChild(swatch);
-        top.appendChild(h('span', 'codex-symbol', it.symbol || ''));
-        top.appendChild(h('span', 'codex-name', it.name));
-        card.appendChild(top);
-        card.appendChild(h('p', 'codex-desc', it.description || ''));
-        card.title = it.id;
-        grid.appendChild(card);
-      }
-      sec.appendChild(grid);
-      host.appendChild(sec);
+    var tabs = h('div', 'btn-row codex-tabs');
+    for (var i = 0; i < CODEX_TABS.length; i++) {
+      (function (tab) {
+        var btn = h('button', 'btn btn-sm' + (codex.tab === tab.id ? ' btn-primary' : ''), I18N.t(tab.key));
+        btn.type = 'button';
+        btn.onclick = function () { codex.tab = tab.id; codex.query = ''; renderCodex(); };
+        tabs.appendChild(btn);
+      })(CODEX_TABS[i]);
     }
-    host.insertBefore(h('div', 'muted codex-count', I18N.t('codex.count', { n: total })), host.children[1] || null);
+    host.appendChild(tabs);
+    if (codex.tab === 'buildings') renderCodexBuildings(host);
+    else if (codex.tab === 'planets') renderCodexPlanets(host);
+    else renderCodexItems(host);
+    codexRestoreCaret(host);
+  }
+
+  /* -------- 物品分区 -------- */
+  function renderCodexItems(host) {
+    var C = app.content;
+    var groups = C.itemsByCategory();
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchItems'));
+
+    var firstId = null, total = 0;
+    for (var ci = 0; ci < CATEGORY_ORDER.length; ci++) {
+      var cat = CATEGORY_ORDER[ci];
+      var all = groups[cat] || [];
+      var items = [];
+      for (var ai = 0; ai < all.length; ai++) {
+        if (codexMatch(all[ai].name) || codexMatch(all[ai].id)) items.push(all[ai]);
+      }
+      if (!items.length) continue;
+      total += items.length;
+      if (!firstId) firstId = items[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', I18N.t(CATEGORY_KEYS[cat] || cat) + ' · ' + items.length));
+      for (var ii = 0; ii < items.length; ii++) {
+        (function (it) {
+          aside.appendChild(codexIndexItem(codex.itemId === it.id, it.color, it.name, it.symbol || '', function () { codexJumpItem(it.id); }));
+        })(items[ii]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.count', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.itemId && C.ITEMS[codex.itemId]) ? codex.itemId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.itemId = id;
+      var it = C.item(id);
+      var head = h('header', 'codex-detail-head');
+      var sw = h('span', 'codex-detail-swatch');
+      sw.style.background = it.color;
+      head.appendChild(sw);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', (it.symbol ? '[' + it.symbol + '] ' : '') + it.name));
+      titles.appendChild(h('small', '', I18N.t(CATEGORY_KEYS[it.category] || it.category)));
+      head.appendChild(titles);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', it.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      dl.appendChild(codexKv(I18N.t('codex.stock'), fmtAmount((app.state.stock || {})[id] || 0)));
+      var produced = (app.state.stats && app.state.stats.totalProduced) || {};
+      dl.appendChild(codexKv(I18N.t('codex.totalProduced'), fmtAmount(produced[id] || 0)));
+      detail.appendChild(dl);
+
+      // 天然来源（哪些行星的矿脉里有它）
+      var planets = codexPlanetsWithOre(id);
+      var srcSec = codexBlock(I18N.t('codex.naturalSources'), planets.length ? planets.length : '');
+      if (!planets.length) {
+        srcSec.appendChild(h('p', 'muted', I18N.t('codex.noNatural')));
+      } else {
+        var pgrid = h('div', 'codex-link-grid');
+        for (var pi = 0; pi < planets.length; pi++) {
+          (function (pl) {
+            var sysUnlocked = (app.state.galaxyUnlocked || []).indexOf(pl.systemId) >= 0;
+            pgrid.appendChild(codexTextLink(pl.name, pl.color, function () { codexJumpPlanet(pl.id); }, sysUnlocked ? '' : I18N.t('galaxy.locked')));
+          })(planets[pi]);
+        }
+        srcSec.appendChild(pgrid);
+      }
+      detail.appendChild(srcSec);
+
+      // 生产方式
+      var prodSec = codexBlock(I18N.t('codex.producedBy'), '');
+      var made = codexRecipesProducing(id);
+      if (!made.length) prodSec.appendChild(h('p', 'muted', I18N.t('codex.noProducer')));
+      for (var mi = 0; mi < made.length; mi++) prodSec.appendChild(codexRecipeRow(made[mi], 'building'));
+      detail.appendChild(prodSec);
+
+      // 作为原料
+      var useSec = codexBlock(I18N.t('codex.usedIn'), '');
+      var used = codexRecipesConsuming(id);
+      if (!used.length) useSec.appendChild(h('p', 'muted', I18N.t('codex.noUse')));
+      for (var ui = 0; ui < used.length; ui++) useSec.appendChild(codexRecipeRow(used[ui], 'item'));
+      detail.appendChild(useSec);
+
+      // 科研用途
+      var techSec = codexBlock(I18N.t('codex.researchUse'), '');
+      var tus = codexTechsUsing(id);
+      if (!tus.length) techSec.appendChild(h('p', 'muted', I18N.t('codex.noTechUse')));
+      for (var ti = 0; ti < tus.length; ti++) {
+        (function (entry) {
+          var done = (app.state.unlockedTechs || []).indexOf(entry.tech.id) >= 0;
+          var row = h('div', 'codex-tech-row');
+          row.appendChild(codexBadge(done ? I18N.t('codex.done') : I18N.t('common.lock'), done));
+          row.appendChild(h('span', 'codex-tech-name', entry.tech.name));
+          row.appendChild(h('span', 'codex-tech-cost', '×' + entry.amount));
+          techSec.appendChild(row);
+        })(tus[ti]);
+      }
+      detail.appendChild(techSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
+  }
+
+  /* -------- 建筑分区 -------- */
+  function renderCodexBuildings(host) {
+    var C = app.content;
+    var order = C.BUILDING_ORDER || [];
+    var byKind = {};
+    var list = [];
+    var i, b;
+    for (i = 0; i < order.length; i++) {
+      b = C.building(order[i]);
+      if (b) list.push(b);
+    }
+    // 兜底：BUILDING_ORDER 之外的建筑也列出来
+    for (var k in C.BUILDINGS) {
+      if (Object.prototype.hasOwnProperty.call(C.BUILDINGS, k) && order.indexOf(k) < 0) list.push(C.BUILDINGS[k]);
+    }
+    for (i = 0; i < list.length; i++) {
+      var kind = list[i].kind || 'machine';
+      if (!byKind[kind]) byKind[kind] = [];
+      byKind[kind].push(list[i]);
+    }
+
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchBuildings'));
+    var firstId = null, total = 0;
+    var kinds = BUILDING_KIND_ORDER.slice();
+    for (var kk in byKind) if (Object.prototype.hasOwnProperty.call(byKind, kk) && kinds.indexOf(kk) < 0) kinds.push(kk);
+    for (var ki = 0; ki < kinds.length; ki++) {
+      var arr = byKind[kinds[ki]] || [];
+      var vis = [];
+      for (i = 0; i < arr.length; i++) if (codexMatch(arr[i].name) || codexMatch(arr[i].id)) vis.push(arr[i]);
+      if (!vis.length) continue;
+      total += vis.length;
+      if (!firstId) firstId = vis[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', I18N.t(BUILDING_KIND_KEYS[kinds[ki]] || kinds[ki]) + ' · ' + vis.length));
+      for (i = 0; i < vis.length; i++) {
+        (function (bd) {
+          aside.appendChild(codexIndexItem(codex.buildingId === bd.id, bd.color, bd.name, bd.shortName || '', function () { codexJumpBuilding(bd.id); }));
+        })(vis[i]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.countBuilding', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.buildingId && C.BUILDINGS[codex.buildingId]) ? codex.buildingId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.buildingId = id;
+      var bb = C.building(id);
+      var head = h('header', 'codex-detail-head');
+      var icon = h('span', 'codex-detail-icon', bb.icon || '');
+      icon.style.color = bb.color;
+      head.appendChild(icon);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', bb.name));
+      titles.appendChild(h('small', '', I18N.t(BUILDING_KIND_KEYS[bb.kind] || bb.kind) + ' · ' + I18N.t('codex.tier', { n: bb.tier || 1 })));
+      head.appendChild(titles);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', bb.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      if (bb.powerGenerationKw) dl.appendChild(codexKv(I18N.t('codex.powerGen'), fmtKw(bb.powerGenerationKw)));
+      else if (bb.powerDemandKw) dl.appendChild(codexKv(I18N.t('codex.powerDemand'), fmtKw(bb.powerDemandKw)));
+      if (bb.speed) dl.appendChild(codexKv(I18N.t('codex.speed'), '×' + bb.speed));
+      if (bb.inputCapacity || bb.outputCapacity) dl.appendChild(codexKv(I18N.t('codex.capacity'), (bb.inputCapacity || 0) + ' / ' + (bb.outputCapacity || 0)));
+      dl.appendChild(codexKv(I18N.t('codex.size'), (bb.w || 0) + ' × ' + (bb.h || 0)));
+      detail.appendChild(dl);
+
+      // 解锁科技
+      var techSec = codexBlock(I18N.t('codex.unlockTech'), '');
+      if (!bb.techId) techSec.appendChild(h('p', 'muted', I18N.t('codex.noTech')));
+      else {
+        var tt = C.tech(bb.techId);
+        var done = (app.state.unlockedTechs || []).indexOf(bb.techId) >= 0;
+        var trow = h('div', 'codex-tech-row');
+        trow.appendChild(codexBadge(done ? I18N.t('codex.done') : I18N.t('common.lock'), done));
+        trow.appendChild(h('span', 'codex-tech-name', tt ? tt.name : bb.techId));
+        techSec.appendChild(trow);
+      }
+      detail.appendChild(techSec);
+
+      // 建造成本
+      var costSec = codexBlock(I18N.t('codex.buildCost'), (bb.costs || []).length);
+      if (!(bb.costs || []).length) costSec.appendChild(h('p', 'muted', I18N.t('codex.noCost')));
+      else {
+        var cgrid = h('div', 'codex-link-grid');
+        for (i = 0; i < bb.costs.length; i++) cgrid.appendChild(codexItemLink(bb.costs[i].itemId, bb.costs[i].amount));
+        costSec.appendChild(cgrid);
+      }
+      detail.appendChild(costSec);
+
+      // 适用配方
+      var recSec = codexBlock(I18N.t('codex.recipes'), '');
+      var recipes = C.recipesForBuilding(id) || [];
+      if (!recipes.length) recSec.appendChild(h('p', 'muted', I18N.t('codex.noRecipes')));
+      for (i = 0; i < recipes.length; i++) recSec.appendChild(codexRecipeRow(recipes[i], 'item'));
+      detail.appendChild(recSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
+  }
+
+  /* -------- 星球分区 -------- */
+  function renderCodexPlanets(host) {
+    var C = app.content;
+    var systems = C.STAR_SYSTEMS || {};
+    var planets = C.PLANETS || {};
+    var unlocked = app.state.galaxyUnlocked || [];
+
+    var layout = h('div', 'codex-layout');
+    var aside = h('aside', 'codex-index');
+    aside.appendChild(codexSearchBox('codex.searchPlanets'));
+    var firstId = null, total = 0;
+    for (var sid in systems) {
+      if (!Object.prototype.hasOwnProperty.call(systems, sid)) continue;
+      var vis = [];
+      for (var pid in planets) {
+        if (!Object.prototype.hasOwnProperty.call(planets, pid)) continue;
+        var pl = planets[pid];
+        if (pl.systemId !== sid) continue;
+        if (codexMatch(pl.name) || codexMatch(pl.code) || codexMatch(pl.environment)) vis.push(pl);
+      }
+      if (!vis.length) continue;
+      total += vis.length;
+      if (!firstId) firstId = vis[0].id;
+      aside.appendChild(h('small', 'codex-index-sub', systems[sid].name + ' · ' + vis.length));
+      for (var vi = 0; vi < vis.length; vi++) {
+        (function (p) {
+          aside.appendChild(codexIndexItem(codex.planetId === p.id, p.color, p.name, p.code || '', function () { codexJumpPlanet(p.id); }));
+        })(vis[vi]);
+      }
+    }
+    aside.appendChild(h('small', 'codex-index-sub', I18N.t('codex.countPlanet', { n: total })));
+    layout.appendChild(aside);
+
+    var detail = h('article', 'codex-detail');
+    var id = (codex.planetId && C.PLANETS[codex.planetId]) ? codex.planetId : firstId;
+    if (!id) {
+      codexIndexHint(detail, I18N.t('codex.noMatch'));
+    } else {
+      codex.planetId = id;
+      var p = C.planet(id);
+      var sys = systems[p.systemId] || {};
+      var sysUnlocked = unlocked.indexOf(p.systemId) >= 0;
+      var head = h('header', 'codex-detail-head');
+      var dot = h('span', 'codex-detail-swatch');
+      dot.style.background = p.color;
+      head.appendChild(dot);
+      var titles = h('span', 'codex-detail-titles');
+      titles.appendChild(h('strong', '', p.name + (p.code ? ' · ' + p.code : '')));
+      titles.appendChild(h('small', '', sys.name ? sys.name : ''));
+      head.appendChild(titles);
+      var badges = h('span', 'codex-detail-badges');
+      if (p.isHome) badges.appendChild(h('span', 'badge', I18N.t('galaxy.home')));
+      if (app.state.planetId === p.id) badges.appendChild(h('span', 'badge badge-current', I18N.t('galaxy.here')));
+      if (!sysUnlocked) badges.appendChild(codexBadge(I18N.t('galaxy.locked'), false));
+      head.appendChild(badges);
+      detail.appendChild(head);
+      detail.appendChild(h('p', 'codex-detail-desc', p.description || ''));
+
+      var dl = h('dl', 'codex-kvs');
+      dl.appendChild(codexKv(I18N.t('galaxy.environment'), p.environment || '—'));
+      dl.appendChild(codexKv(I18N.t('galaxy.solar'), '×' + (p.solarMultiplier || 1)));
+      dl.appendChild(codexKv(I18N.t('codex.orbit'), '#' + (p.orbitIndex || 1)));
+      dl.appendChild(codexKv(I18N.t('codex.distance'), (sys.distanceLy || 0) + ' ly'));
+      detail.appendChild(dl);
+
+      var oreSec = codexBlock(I18N.t('galaxy.ores'), (p.oreTypes || []).length);
+      var ogrid = h('div', 'codex-link-grid');
+      if (!(p.oreTypes || []).length) ogrid.appendChild(h('span', 'muted', I18N.t('galaxy.noOres')));
+      for (var oi = 0; oi < (p.oreTypes || []).length; oi++) ogrid.appendChild(codexItemLink(p.oreTypes[oi]));
+      oreSec.appendChild(ogrid);
+      detail.appendChild(oreSec);
+
+      var sysSec = codexBlock(I18N.t('codex.system'), '');
+      sysSec.appendChild(h('p', 'codex-detail-desc', sys.description || ''));
+      if (!sysUnlocked) sysSec.appendChild(h('p', 'muted', I18N.t('galaxy.unlockHint')));
+      detail.appendChild(sysSec);
+    }
+    layout.appendChild(detail);
+    host.appendChild(layout);
   }
 
   /* ============================================================
