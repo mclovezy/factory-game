@@ -563,20 +563,9 @@
         openSidebarTab(this.getAttribute('data-tab'));
       };
     }
-    // 左侧库存坞收起 / 展开
+    // 左侧库存坞：按顶栏 + 状态栏实测高度定位（窄屏顶栏换行后 CSS 常量不可靠）
     var dock = $('stock-dock');
-    var dockBtn = $('stock-dock-toggle');
-    if (dock && dockBtn) {
-      if (typeof window !== 'undefined' && window.innerWidth < 720) dock.classList.add('collapsed');
-      function syncDockToggle() {
-        dockBtn.textContent = dock.classList.contains('collapsed') ? '»' : '«';
-      }
-      syncDockToggle();
-      dockBtn.addEventListener('click', function () {
-        var collapsed = dock.classList.toggle('collapsed');
-        dockBtn.textContent = collapsed ? '»' : '«';
-      });
-      // top = 顶栏 + 状态栏实测高度（窄屏顶栏换行后 CSS 常量不可靠）
+    if (dock) {
       var fitDock = function () {
         var tb = $('topbar'), sb = $('statusbar');
         if (!tb || !sb) return;

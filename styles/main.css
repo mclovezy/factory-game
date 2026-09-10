@@ -516,36 +516,10 @@ body > #main-area > #canvas-container,
   backdrop-filter: blur(6px);
   border-right: 1px solid var(--border);
   z-index: 20;
-  transition: transform 0.22s ease;
 }
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   #stock-dock { background: var(--panel); }
 }
-/* 收起：向左滑出，只留 30px 把手条 */
-#stock-dock.collapsed { transform: translateX(calc(-100% + 38px)); }
-#stock-dock-toggle {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
-  line-height: 1;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--panel-2);
-  color: var(--muted);
-  cursor: pointer;
-  z-index: 2;
-  pointer-events: auto;
-  touch-action: manipulation;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-#stock-dock-toggle:hover { color: var(--text); background: var(--panel-3); }
-#stock-dock-toggle:active { transform: scale(0.95); }
 .stock-dock-panel {
   flex: 1;
   min-height: 0;
