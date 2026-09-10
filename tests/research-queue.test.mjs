@@ -16,6 +16,19 @@ function fresh() {
 }
 
 describe('研究队列（可点击累加，同一时间只研究一个）', () => {
+  it('研究速率 = 研究站数 × RESEARCH_POINTS_PER_LAB(3) 点/秒，可线性叠加', () => {
+    const state = fresh();
+    engine.startResearch(state, content, 'magnetic_assembly');
+    engine.advance(state, content, 10);
+    assert.ok(Math.abs(state.research.progress - 30) < 1e-6, `1 座研究站 × 3 点/秒 × 10s，实际 ${state.research.progress}`);
+
+    // 叠加研究站（同型叠放 count=N 视为 N 座）
+    engine.placeBuilding(state, content, { typeId: 'matrix_lab', x: 0, y: 0 });
+    engine.placeBuilding(state, content, { typeId: 'matrix_lab', x: 0, y: 0 });
+    engine.advance(state, content, 10);
+    assert.ok(Math.abs(state.research.progress - 90) < 1e-6, `3 座研究站速率应线性叠加，实际 ${state.research.progress}`);
+  });
+
   it('空闲时点击 → 直接开始；在研时点击 → 排队', () => {
     const state = fresh();
     const r1 = engine.startResearch(state, content, 'magnetic_assembly');
