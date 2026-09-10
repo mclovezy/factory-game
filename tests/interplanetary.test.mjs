@@ -42,13 +42,11 @@ describe('行星间自动物流（系统6）', () => {
     const t1 = engine.travelTo(state, content, other);
     assert.ok(t1.ok, JSON.stringify(t1));
     assert.equal(Object.keys(state.buildings).length, 0, '新行星应无建筑');
-    assert.equal(state.stock.iron_ingot || 0, 0, '新行星库存应独立');
+    // 首次抵达非母星会收到殖民补给，否则空库存无法造矿机
+    assert.ok((state.stock.iron_ingot || 0) > 0, '新行星应有殖民补给');
+    assert.notEqual(state.stock.iron_ingot, 999, '新行星库存应独立于母星');
 
-    // 新行星放建筑（新行星库存独立，需注入材料）
-    state.stock.iron_ingot = (state.stock.iron_ingot || 0) + 100;
-    state.stock.circuit_board = (state.stock.circuit_board || 0) + 50;
-    state.stock.magnetic_coil = (state.stock.magnetic_coil || 0) + 50;
-    state.stock.gear = (state.stock.gear || 0) + 50;
+    // 新行星用殖民补给即可直接放建筑
     const r2 = engine.placeBuilding(state, content, { typeId: 'wind_turbine', x: 800, y: 800 });
     assert.ok(r2.ok);
     // 切回母星
@@ -130,5 +128,34 @@ describe('行星间自动物流（系统6）', () => {
     assert.ok(routeSaved, '路由应保留');
     assert.equal(routeSaved.toPid, target);
     assert.equal(routeSaved.amount, 5);
+  });
+
+  it('殖民补给：首次抵达非母星获得建材，二次抵达不重复发放', () => {
+    const state = engine.createInitialState(content, homePlanetId(content));
+    state.galaxyUnlocked = Object.keys(content.STAR_SYSTEMS || {});
+    const home = homePlanetId(content);
+    const other = findOtherPlanet(state, true);
+    assert.ok(other, '应有同星系其他行星');
+    assert.ok(content.PLANETS[other].isHome === false, '目标不能是母星');
+
+    const t1 = engine.travelTo(state, content, other);
+    assert.ok(t1.ok);
+    const firstIron = state.stock.iron_ingot || 0;
+    assert.ok(firstIron > 0, '首次抵达应获得殖民补给');
+
+    // 用补给应能直接造矿机与电厂（不依赖母星库存）
+    const v = state.veins['vein-iron_ore'];
+    assert.ok(v, '目标行星应有铁矿脉');
+    const wt = engine.placeBuilding(state, content, { typeId: 'wind_turbine', x: v.x - 120, y: v.y });
+    assert.ok(wt.ok, `风机放置失败: ${JSON.stringify(wt)}`);
+    const mm = engine.placeBuilding(state, content, { typeId: 'mining_machine', x: v.x, y: v.y });
+    assert.ok(mm.ok, `采矿机放置失败: ${JSON.stringify(mm)}`);
+
+    // 切回母星再切回，殖民补给不重复发放（只减了建造消耗）
+    engine.travelTo(state, content, home);
+    engine.travelTo(state, content, other);
+    const secondIron = state.stock.iron_ingot || 0;
+    assert.ok(secondIron > 0, '二次抵达后库存仍应有剩余');
+    assert.ok(secondIron < firstIron, '二次抵达不应重复发放殖民补给');
   });
 });

@@ -568,10 +568,14 @@
     var dockBtn = $('stock-dock-toggle');
     if (dock && dockBtn) {
       if (typeof window !== 'undefined' && window.innerWidth < 720) dock.classList.add('collapsed');
-      dockBtn.onclick = function () {
+      function syncDockToggle() {
+        dockBtn.textContent = dock.classList.contains('collapsed') ? '»' : '«';
+      }
+      syncDockToggle();
+      dockBtn.addEventListener('click', function () {
         var collapsed = dock.classList.toggle('collapsed');
         dockBtn.textContent = collapsed ? '»' : '«';
-      };
+      });
       // top = 顶栏 + 状态栏实测高度（窄屏顶栏换行后 CSS 常量不可靠）
       var fitDock = function () {
         var tb = $('topbar'), sb = $('statusbar');
@@ -2995,6 +2999,19 @@
     var now = Date.now();
     if (now - lastRefresh < 200) return;
     lastRefresh = now;
+
+    // —— 顶栏品牌区改为显示当前星球 / 星系 ——
+    var brand = $('brand');
+    if (brand && app.state && app.state.planetId) {
+      var p = (app.content.PLANETS || {})[app.state.planetId];
+      if (p) {
+        var sys = (app.content.STAR_SYSTEMS || {})[p.systemId];
+        var sysName = sys ? sys.name : (p.systemId || '');
+        var homeTag = p.isHome ? I18N.t('topbar.homePlanet') : '';
+        brand.textContent = p.name + (homeTag ? '（' + homeTag + '）' : '') + ' · ' + sysName;
+        brand.title = I18N.t('brand.title') + ' · ' + (p.environment || '') + ' · ' + (p.description || '');
+      }
+    }
 
     // —— 顶栏科研进度（任意界面可见；进度由引擎随模拟推进，与所在界面无关）——
     var rsEl = $('metric-research');

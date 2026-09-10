@@ -62,6 +62,10 @@
 
   var VEIN_CAP = 300;              // 矿脉输出缓存上限（v2：储量无限，缓存供传送带抽取）
   var MINER_RATE = 5;              // 每台采矿机基础开采速率（物品/秒，×电力比）
+  var COLONY_STARTER_STOCK = {     // 首次抵达非母星时的殖民补给，否则空库存无法造矿机
+    iron_ingot: 200, copper_ingot: 100, stone_brick: 80,
+    gear: 60, magnetic_coil: 60, circuit_board: 60, glass: 20
+  };
   var MINER_DEMAND_KW = 420;       // 每台采矿机耗电（对齐 BUILDINGS.mining_machine）
   var ATTACH_DIST = 75;            // 矿机落脉 / 同型叠加 / 移动判定的吸附与重叠距离
 
@@ -1993,7 +1997,16 @@
     saveCurrentPlanet(state);
     state.planetId = planetId;
     var ps = state.planets[planetId];
-    if (!ps) ps = state.planets[planetId] = { buildings: {}, belts: {}, veins: {}, stock: {}, buildingReserve: {} };
+    if (!ps) {
+      ps = state.planets[planetId] = { buildings: {}, belts: {}, veins: {}, stock: {}, buildingReserve: {} };
+      // 殖民补给：首次抵达非母星时给一份建材，否则空库存造不了矿机/电厂，跨星进度死锁
+      if (!planet.isHome) {
+        var starter = COLONY_STARTER_STOCK;
+        for (var sk in starter) {
+          if (Object.prototype.hasOwnProperty.call(starter, sk)) ps.stock[sk] = starter[sk];
+        }
+      }
+    }
     if (!ps.veins || !Object.keys(ps.veins).length) ps.veins = generateVeins(planetId, content);
     state.buildings = ps.buildings;
     state.belts = ps.belts;

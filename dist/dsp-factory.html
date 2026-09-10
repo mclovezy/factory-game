@@ -215,10 +215,11 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  background: var(--panel);
+  gap: 10px;
+  padding: 0 12px;
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   z-index: 30;
   overflow-x: auto;
   overflow-y: hidden;
@@ -271,32 +272,37 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   white-space: nowrap;
   padding-right: 6px;
   user-select: none;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 顶栏指标卡（借鉴 DSPONLINE game-header：图标 + 标签 + 大数值 + 趋势着色） */
 .metrics {
   display: flex;
   align-items: stretch;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 .metric {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr);
   align-content: center;
-  column-gap: 7px;
+  column-gap: 8px;
   row-gap: 1px;
   min-width: 92px;
-  padding: 4px 12px;
-  background: var(--panel-2);
+  padding: 5px 12px;
+  background: linear-gradient(145deg, var(--panel) 0%, var(--panel-2) 100%);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .metric-icon {
   grid-row: 1 / span 2;
   align-self: center;
-  font-size: 14px;
+  font-size: 15px;
   font-style: normal;
   color: var(--accent);
 }
@@ -340,39 +346,70 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
 #workspace-tabs {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 2px;
+  padding: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .workspace-tab {
   border: none;
   background: transparent;
   border-radius: 999px;
-  min-height: 30px;
-  padding: 3px 12px;
+  min-height: 32px;
+  padding: 4px 14px;
   color: var(--muted);
   white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 .workspace-tab:hover { color: var(--text-strong); background: var(--accent-dim); }
 .workspace-tab.active {
   background: var(--accent);
   color: #06121f;
   font-weight: 600;
+  box-shadow: 0 2px 6px rgba(47, 124, 246, 0.25);
 }
 html[data-theme='light'] .workspace-tab.active { color: #ffffff; }
 
-.topbar-btn {
-  width: 40px;
-  min-width: 40px;
-  min-height: 36px;
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.topbar-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  height: 34px;
+  min-height: 34px;
   padding: 0;
-  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.topbar-actions button:hover { background: var(--panel-3); border-color: var(--border-strong); }
+.topbar-actions button:active { transform: scale(0.96); }
+#btn-pause.active { background: var(--warn); border-color: var(--warn); color: #1d1608; }
+#btn-speed { min-width: 48px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.topbar-btn {
+  width: 36px;
+  min-width: 36px;
+  min-height: 34px;
+  padding: 0;
+  font-size: 14px;
   text-align: center;
 }
-#btn-pause.active { background: var(--warn); border-color: var(--warn); color: #1d1608; }
-#btn-speed { min-width: 44px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* ---------------- 主区域 ---------------- */
 #main-area {
@@ -493,23 +530,30 @@ body > #main-area > #canvas-container,
   #stock-dock { background: var(--panel); }
 }
 /* 收起：向左滑出，只留 30px 把手条 */
-#stock-dock.collapsed { transform: translateX(calc(-100% + 30px)); }
+#stock-dock.collapsed { transform: translateX(calc(-100% + 38px)); }
 #stock-dock-toggle {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 22px;
-  height: 22px;
-  font-size: 12px;
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
   line-height: 1;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--panel-2);
   color: var(--muted);
   cursor: pointer;
   z-index: 2;
+  pointer-events: auto;
+  touch-action: manipulation;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
-#stock-dock-toggle:hover { color: var(--text); }
+#stock-dock-toggle:hover { color: var(--text); background: var(--panel-3); }
+#stock-dock-toggle:active { transform: scale(0.95); }
 .stock-dock-panel {
   flex: 1;
   min-height: 0;
@@ -2513,6 +2557,10 @@ html[data-theme='light'] .badge-current { color: #fff; }
 
   var VEIN_CAP = 300;              // 矿脉输出缓存上限（v2：储量无限，缓存供传送带抽取）
   var MINER_RATE = 5;              // 每台采矿机基础开采速率（物品/秒，×电力比）
+  var COLONY_STARTER_STOCK = {     // 首次抵达非母星时的殖民补给，否则空库存无法造矿机
+    iron_ingot: 200, copper_ingot: 100, stone_brick: 80,
+    gear: 60, magnetic_coil: 60, circuit_board: 60, glass: 20
+  };
   var MINER_DEMAND_KW = 420;       // 每台采矿机耗电（对齐 BUILDINGS.mining_machine）
   var ATTACH_DIST = 75;            // 矿机落脉 / 同型叠加 / 移动判定的吸附与重叠距离
 
@@ -4444,7 +4492,16 @@ html[data-theme='light'] .badge-current { color: #fff; }
     saveCurrentPlanet(state);
     state.planetId = planetId;
     var ps = state.planets[planetId];
-    if (!ps) ps = state.planets[planetId] = { buildings: {}, belts: {}, veins: {}, stock: {}, buildingReserve: {} };
+    if (!ps) {
+      ps = state.planets[planetId] = { buildings: {}, belts: {}, veins: {}, stock: {}, buildingReserve: {} };
+      // 殖民补给：首次抵达非母星时给一份建材，否则空库存造不了矿机/电厂，跨星进度死锁
+      if (!planet.isHome) {
+        var starter = COLONY_STARTER_STOCK;
+        for (var sk in starter) {
+          if (Object.prototype.hasOwnProperty.call(starter, sk)) ps.stock[sk] = starter[sk];
+        }
+      }
+    }
     if (!ps.veins || !Object.keys(ps.veins).length) ps.veins = generateVeins(planetId, content);
     state.buildings = ps.buildings;
     state.belts = ps.belts;
@@ -5112,6 +5169,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'topbar.resume': '继续',
       'topbar.menu': '主菜单',
       'topbar.speed': '游戏速度',
+      'topbar.homePlanet': '母星',
 
       'ws.factory': '工厂',
       'ws.galaxy': '星系',
@@ -5534,6 +5592,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'topbar.resume': 'Resume',
       'topbar.menu': 'Main Menu',
       'topbar.speed': 'Game Speed',
+      'topbar.homePlanet': 'Home',
 
       'ws.factory': 'Factory',
       'ws.galaxy': 'Galaxy',
@@ -8807,10 +8866,14 @@ html[data-theme='light'] .badge-current { color: #fff; }
     var dockBtn = $('stock-dock-toggle');
     if (dock && dockBtn) {
       if (typeof window !== 'undefined' && window.innerWidth < 720) dock.classList.add('collapsed');
-      dockBtn.onclick = function () {
+      function syncDockToggle() {
+        dockBtn.textContent = dock.classList.contains('collapsed') ? '»' : '«';
+      }
+      syncDockToggle();
+      dockBtn.addEventListener('click', function () {
         var collapsed = dock.classList.toggle('collapsed');
         dockBtn.textContent = collapsed ? '»' : '«';
-      };
+      });
       // top = 顶栏 + 状态栏实测高度（窄屏顶栏换行后 CSS 常量不可靠）
       var fitDock = function () {
         var tb = $('topbar'), sb = $('statusbar');
@@ -11234,6 +11297,19 @@ html[data-theme='light'] .badge-current { color: #fff; }
     var now = Date.now();
     if (now - lastRefresh < 200) return;
     lastRefresh = now;
+
+    // —— 顶栏品牌区改为显示当前星球 / 星系 ——
+    var brand = $('brand');
+    if (brand && app.state && app.state.planetId) {
+      var p = (app.content.PLANETS || {})[app.state.planetId];
+      if (p) {
+        var sys = (app.content.STAR_SYSTEMS || {})[p.systemId];
+        var sysName = sys ? sys.name : (p.systemId || '');
+        var homeTag = p.isHome ? I18N.t('topbar.homePlanet') : '';
+        brand.textContent = p.name + (homeTag ? '（' + homeTag + '）' : '') + ' · ' + sysName;
+        brand.title = I18N.t('brand.title') + ' · ' + (p.environment || '') + ' · ' + (p.description || '');
+      }
+    }
 
     // —— 顶栏科研进度（任意界面可见；进度由引擎随模拟推进，与所在界面无关）——
     var rsEl = $('metric-research');

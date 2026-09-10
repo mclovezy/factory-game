@@ -32,6 +32,7 @@
       'topbar.resume': '继续',
       'topbar.menu': '主菜单',
       'topbar.speed': '游戏速度',
+      'topbar.homePlanet': '母星',
 
       'ws.factory': '工厂',
       'ws.galaxy': '星系',
@@ -454,6 +455,7 @@
       'topbar.resume': 'Resume',
       'topbar.menu': 'Main Menu',
       'topbar.speed': 'Game Speed',
+      'topbar.homePlanet': 'Home',
 
       'ws.factory': 'Factory',
       'ws.galaxy': 'Galaxy',
