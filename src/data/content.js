@@ -107,11 +107,11 @@
 
     // —— 科研矩阵（6，红/蓝/黄/紫/绿/白）——
     electromagnetic_matrix: { id: 'electromagnetic_matrix', name: '电磁矩阵', symbol: 'EM', color: '#e25555', kind: 'matrix', category: 'matrix', description: '红色初阶矩阵，凝聚电磁学的研究数据。' },
-    energy_matrix: { id: 'energy_matrix', name: '能量矩阵', symbol: 'EnM', color: '#f0b429', kind: 'matrix', category: 'matrix', description: '蓝色二阶矩阵，编码能源与热力学的成果。' },
+    energy_matrix: { id: 'energy_matrix', name: '能量矩阵', symbol: 'EnM', color: '#4a90e2', kind: 'matrix', category: 'matrix', description: '蓝色二阶矩阵，编码能源与热力学的成果。' },
     structure_matrix: { id: 'structure_matrix', name: '结构矩阵', symbol: 'StM', color: '#e3b341', kind: 'matrix', category: 'matrix', description: '黄色三阶矩阵，记录物质结构的奥秘。' },
     information_matrix: { id: 'information_matrix', name: '信息矩阵', symbol: 'InM', color: '#8b5cf6', kind: 'matrix', category: 'matrix', description: '紫色四阶矩阵，承载海量信息模型。' },
     gravity_matrix: { id: 'gravity_matrix', name: '引力矩阵', symbol: 'GrM', color: '#22b573', kind: 'matrix', category: 'matrix', description: '绿色五阶矩阵，解析时空与引力的本质。' },
-    universe_matrix: { id: 'universe_matrix', name: '宇宙矩阵', symbol: 'Uni', color: '#8a9bb5', kind: 'matrix', category: 'matrix', description: '白色终阶矩阵，集五色之大成的宇宙真理。' },
+    universe_matrix: { id: 'universe_matrix', name: '宇宙矩阵', symbol: 'Uni', color: '#dfe4ea', kind: 'matrix', category: 'matrix', description: '白色终阶矩阵，集五色之大成的宇宙真理。' },
   };
 
   /* ------------------------------------------------------------
@@ -376,7 +376,7 @@
     fluid_handling: { id: 'fluid_handling', name: '流体萃取', tier: 1, costs: [{ itemId: 'electromagnetic_matrix', amount: 14 }], prerequisites: ['electromagnetism'], summary: '建起抽水、采油与精炼的整套流体设施。', unlocks: ['抽水站', '原油萃取站', '原油精炼厂', '储液罐'] },
     plasma_refining: { id: 'plasma_refining', name: '等离子精炼', tier: 2, costs: [{ itemId: 'electromagnetic_matrix', amount: 20 }], prerequisites: ['fluid_handling'], summary: '用电浆把原油劈成油品与氢气。', unlocks: ['等离子精炼配方'] },
     solar_energy: { id: 'solar_energy', name: '太阳能收集', tier: 1, costs: [{ itemId: 'electromagnetic_matrix', amount: 8 }], prerequisites: ['electromagnetism'], summary: '把恒星的馈赠直接接入电网。', unlocks: ['太阳能板', '行星日照系数'] },
-    energy_matrix: { id: 'energy_matrix', name: '能量矩阵', tier: 2, costs: [{ itemId: 'electromagnetic_matrix', amount: 15 }], prerequisites: ['thermal_power', 'magnetic_assembly'], summary: '把氢的能级与高能石墨编码为蓝色科研矩阵。', unlocks: ['高能石墨', '能量矩阵生产', '红色矩阵科研'] },
+    energy_matrix: { id: 'energy_matrix', name: '能量矩阵', tier: 2, costs: [{ itemId: 'electromagnetic_matrix', amount: 15 }], prerequisites: ['thermal_power', 'magnetic_assembly'], summary: '把氢的能级与高能石墨编码为蓝色科研矩阵。', unlocks: ['高能石墨', '能量矩阵生产', '蓝色矩阵科研'] },
     motor_drive: { id: 'motor_drive', name: '电动机械', tier: 2, costs: [{ itemId: 'electromagnetic_matrix', amount: 12 }, { itemId: 'energy_matrix', amount: 6 }], prerequisites: ['basic_logistics', 'magnetic_assembly'], summary: '从电动机到电磁涡轮，让机器自己动起来。', unlocks: ['电动机', '电磁涡轮', '高速传送带'] },
 
     // —— tier 2（10）——
