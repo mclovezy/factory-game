@@ -503,7 +503,7 @@
   const PLANETS = {
     // —— 晨曦系（3）——
     qiming: { id: 'qiming', name: '启明 I', code: '母星', color: '#59c0a9', environment: '温带海洋行星', systemId: 'dawnlight', orbitIndex: 1, solarMultiplier: 1.0, isHome: true, oreTypes: ['iron_ore', 'copper_ore', 'stone', 'coal', 'crude_oil', 'water'], description: '文明启航的地方，浅海与丘陵下埋着最熟悉的铁与煤。' },
-    yanli: { id: 'yanli', name: '焰砾 II', code: '熔岩星', color: '#d8794d', environment: '熔岩行星', systemId: 'dawnlight', orbitIndex: 2, solarMultiplier: 1.4, isHome: false, oreTypes: ['iron_ore', 'copper_ore', 'silicon_ore', 'titanium_ore', 'coal', 'sulfuric_acid', 'kimberlite_ore'], description: '地表是奔流的熔岩，裂缝里却渗出硫酸与贵金属矿脉。' },
+    yanli: { id: 'yanli', name: '焰砾 II', code: '熔岩星', color: '#d8794d', environment: '熔岩行星', systemId: 'dawnlight', orbitIndex: 2, solarMultiplier: 1.4, isHome: false, oreTypes: ['iron_ore', 'copper_ore', 'stone', 'silicon_ore', 'titanium_ore', 'coal', 'crude_oil', 'water', 'sulfuric_acid', 'kimberlite_ore'], description: '地表是奔流的熔岩，裂缝里却渗出硫酸与贵金属矿脉；深谷之下封存着远古油藏与地下水，足以就地建起化工厂。' },
     lanhuan: { id: 'lanhuan', name: '岚环 III', code: '气巨星', color: '#6badc7', environment: '冰气态巨星', systemId: 'dawnlight', orbitIndex: 3, solarMultiplier: 1.0, isHome: false, oreTypes: ['fire_ice', 'hydrogen'], description: '巨大的淡蓝色行星拖着冰环，云层深处可采可燃冰。' },
 
     // —— 霜川系（3）——

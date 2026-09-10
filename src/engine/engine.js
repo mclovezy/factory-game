@@ -265,6 +265,20 @@
     return veins;
   }
 
+  // 补齐矿脉：为行星 oreTypes 里尚无对应矿脉的矿种补生成（幂等）。
+  // 用途：新增/调整行星矿产后，已有存档也能拿到新矿脉，无需重开档。
+  function ensurePlanetVeins(planetId, veins, content) {
+    var fresh = generateVeins(planetId, content);
+    if (!veins) return fresh;
+    for (var vid in fresh) {
+      if (Object.prototype.hasOwnProperty.call(fresh, vid) &&
+        !Object.prototype.hasOwnProperty.call(veins, vid)) {
+        veins[vid] = fresh[vid];
+      }
+    }
+    return veins;
+  }
+
   function isVein(state, id) {
     return !!(state.veins && Object.prototype.hasOwnProperty.call(state.veins, id));
   }
@@ -2008,6 +2022,7 @@
       }
     }
     if (!ps.veins || !Object.keys(ps.veins).length) ps.veins = generateVeins(planetId, content);
+    else ps.veins = ensurePlanetVeins(planetId, ps.veins, content); // 补齐新增矿产（老档兼容）
     state.buildings = ps.buildings;
     state.belts = ps.belts;
     state.veins = ps.veins;
@@ -2390,7 +2405,7 @@
         st.planets[pidx] = {
           buildings: pb,
           belts: pbl,
-          veins: (pd.veins && Object.keys(pd.veins).length) ? pd.veins : generateVeins(pidx, content),
+          veins: ensurePlanetVeins(pidx, (pd.veins && Object.keys(pd.veins).length) ? pd.veins : null, content),
           stock: sortedCopy(pd.stock || {}),
           buildingReserve: sortedCopy(pd.buildingReserve || {})
         };
