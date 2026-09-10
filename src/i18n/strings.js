@@ -419,6 +419,7 @@
       'settings.aboutText': '星穹工厂 · 零依赖纯 HTML 重制版 · 数据与文案均为原创。',
 
       'ui.toggleSidebar': '展开 / 收起侧栏',
+      'sidebar.locked': '建造与详情仅在工厂页可用，按 Esc 返回',
       'quick.details': '详情',
       'quick.connect': '连接',
       'quick.remove': '拆除',
@@ -885,6 +886,7 @@
       'settings.aboutText': 'Stellar Factory · zero-dependency pure HTML rebuild · original data and copy.',
 
       'ui.toggleSidebar': 'Toggle sidebar',
+      'sidebar.locked': 'Build & details are factory-only — press Esc to return',
       'quick.details': 'Details',
       'quick.connect': 'Connect',
       'quick.remove': 'Demolish',

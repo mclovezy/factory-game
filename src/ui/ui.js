@@ -239,6 +239,9 @@
       toggle.title = I18N.t('ui.toggleSidebar');
       toggle.setAttribute('aria-label', I18N.t('ui.toggleSidebar'));
     }
+    var lockHintEl = document.querySelector('.sidebar-locked-hint');
+    var lockText = lockHintEl ? lockHintEl.querySelector('.slh-text') : null;
+    if (lockText) lockText.textContent = I18N.t('sidebar.locked');
     var metricPower = $('metric-power');
     if (metricPower) {
       metricPower.title = I18N.t('topbar.power');
@@ -565,6 +568,14 @@
         var open = document.body.classList.toggle('sidebar-open');
         if (sidebar) sidebar.classList.toggle('open', open);
       };
+    }
+    // 工作区页面锁定提示条（显隐由 CSS body.workspace-open 控制，文本随语言更新）
+    var sidebarHost = $('sidebar');
+    if (sidebarHost && !sidebarHost.querySelector('.sidebar-locked-hint')) {
+      var lockHint = h('div', 'sidebar-locked-hint');
+      lockHint.appendChild(h('span', 'slh-icon', '🔒'));
+      lockHint.appendChild(h('span', 'slh-text', I18N.t('sidebar.locked')));
+      sidebarHost.insertBefore(lockHint, sidebarHost.firstChild);
     }
     // 选项卡切换
     var tabBtns = document.querySelectorAll('#sidebar-tabs .tab-btn');
@@ -1097,6 +1108,24 @@
   /* ============================================================
    * 工作区面板渲染
    * ============================================================ */
+  /**
+   * 建造面板（#palette）与详情卡（#inspector）是工厂页专属交互：
+   * 打开工作区页面时侧栏整体由 CSS（body.workspace-open）置为不可交互，
+   * 这里负责收拢会被「带走」的状态——退出放置 / 连线模式、关掉建筑卡上的
+   * 配方下拉与快捷菜单，避免回到工厂页时挂着一个未完成的放置态。
+   */
+  function exitFactoryMode() {
+    if (!app) return;
+    if (app.mode !== 'select' || app.placeType) {
+      app.mode = 'select';
+      app.placeType = null;
+    }
+    app.connectFrom = null;
+    app._dragMove = null;
+    hideCardRecipeMenu();
+    if (quickMenuEl) quickMenuEl.classList.remove('open');
+  }
+
   function showWorkspace(name) {
     if (WORKSPACES.indexOf(name) < 0) name = 'factory';
     currentWorkspace = name;
@@ -1122,6 +1151,7 @@
       document.body.classList.remove('sidebar-open');
       var sidebar = $('sidebar');
       if (sidebar) sidebar.classList.remove('open');
+      exitFactoryMode();
     }
     // 工作区页面打开时隐藏左侧库存坞（CSS body.workspace-open）
     document.body.classList.toggle('workspace-open', name !== 'factory');

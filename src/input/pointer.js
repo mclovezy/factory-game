@@ -862,6 +862,9 @@
     function onKeyDown(e) {
       if (isTypingTarget(e.target)) return;
       var I18N = global.DSP_I18N;
+      // 工作区页面（星系/科技/统计/戴森/图鉴/设置）下画布被面板遮住，
+      // 建造与删除快捷键在这里不生效，避免污染放置态或删掉看不见的选中对象
+      var factoryActive = (app.workspace || 'factory') === 'factory';
 
       if (e.key === 'Escape') {
         var UI = global.DSP_UI;
@@ -878,7 +881,7 @@
         return;
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (app.selected) {
+        if (factoryActive && app.selected) {
           e.preventDefault();
           doRemoveSelected();
           if (app.toast) app.toast(I18N.t('toast.removed'));
@@ -886,7 +889,7 @@
         return;
       }
       var digit = /^([1-9])$/.exec(e.key);
-      if (digit) {
+      if (digit && factoryActive) {
         var order = (app.content && app.content.BUILDING_ORDER) || [];
         var idx = parseInt(digit[1], 10) - 1;
         if (idx < order.length) {
