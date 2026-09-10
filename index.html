@@ -9,6 +9,34 @@
   <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
+  <!-- 移动端拦截：本游戏按键鼠设计，手机访问直接提示改用电脑（内联尽早执行） -->
+  <div id="mobile-block" style="display:none;position:fixed;inset:0;z-index:99999;background:#0b1020;color:#dfe7ff;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;align-items:center;justify-content:center;padding:24px;text-align:center">
+    <div style="max-width:420px">
+      <div style="font-size:44px;margin-bottom:12px">🖥️</div>
+      <h1 style="font-size:20px;margin:0 0 10px">请使用电脑游玩</h1>
+      <p style="font-size:14px;line-height:1.7;margin:0 0 18px;color:#aab6d4">
+        星穹工厂需要键盘鼠标的拖拽、框选与连线操作，<br>手机端无法获得完整体验。
+      </p>
+      <p style="font-size:14px;line-height:1.7;margin:0;color:#7f8db0">
+        请在电脑浏览器中打开本页面继续游戏。
+      </p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ua = navigator.userAgent || '';
+      var isMobileUA = /Android|iPhone|iPod|Mobile|Windows Phone|WebOS|BlackBerry/i.test(ua);
+      var coarse = false, small = false;
+      try {
+        coarse = window.matchMedia('(pointer: coarse)').matches;
+        small = Math.min(window.screen.width, window.screen.height) < 720;
+      } catch (e) { /* 老浏览器直接按 UA 判定 */ }
+      if (isMobileUA || (coarse && small)) {
+        var el = document.getElementById('mobile-block');
+        if (el) el.style.display = 'flex';
+      }
+    })();
+  </script>
   <noscript>
     <div style="padding:24px;color:#dfe7ff;font-family:sans-serif">
       本游戏需要在浏览器中启用 JavaScript 才能运行。
