@@ -1308,8 +1308,10 @@ html[data-theme='light'] .badge-current { color: #fff; }
 .research-queue__item button:hover { color: var(--danger); background: var(--danger-dim); }
 
 /* 科技树：横向滚动的层级分列 */
-/* 科技页：定高布局——标题/研究卡按内容占位（队列区高度已固定），科技树吃满剩余高度。
-   队列项数变化不再改变卡片高度，因此科技树高度也随之稳定，页面下方不留白。 */
+/* 科技页：标题/研究卡按内容占位（研究队列区高度已固定），科技树吃满剩余高度。
+   行高用 auto + align-content:stretch：空间富余时行撑开填满（不留白），
+   空间不足时行保持内容高度并把树撑高（flex-shrink:0），改由面板纵向滚动，绝不裁切卡片。
+   注意：不要改回 max-content —— 它按「不换行」估算高度，会低估会折行的卡片，导致卡内文字溢出色块边框。 */
 #workspace-panel > #panel-technology.active {
   display: flex;
   flex-direction: column;
@@ -1319,7 +1321,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
   display: flex;
   align-items: stretch;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 1 0 auto;          /* 可被剩余空间撑高，但绝不压缩到内容高度以下 */
   min-height: 300px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1360,9 +1362,9 @@ html[data-theme='light'] .badge-current { color: #fff; }
   grid-auto-flow: column;
   flex: 1 1 auto;
   min-height: 0;
-  align-content: start;
+  align-content: stretch;
   grid-template-columns: repeat(var(--tech-cols, 1), minmax(0, var(--tech-col-w, 250px)));
-  grid-template-rows: repeat(var(--tech-rows, 3), minmax(96px, max-content));
+  grid-template-rows: repeat(var(--tech-rows, 3), minmax(96px, auto));
   gap: 10px;
 }
 
