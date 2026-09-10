@@ -56,6 +56,8 @@
   /* ---------------- 小工具 ---------------- */
   // 本文件自带的流量比较阈值（engine.js 的 EPS 是 IIFE 私有的，跨文件引用会 ReferenceError）
   var FLOW_EPS = 1e-9;
+  // 研究队列最多展开的条目数，其余折叠为「另有 N 项」（悬停可查看被折叠的科技名）
+  var QUEUE_VISIBLE_MAX = 2;
   function $(id) { return els[id] || null; }
   function h(tag, cls, text) {
     var el = document.createElement(tag);
@@ -1585,7 +1587,9 @@
     if (!ids.length) {
       list.appendChild(h('span', 'research-queue__empty', I18N.t('tech.queueEmpty')));
     } else {
-      for (var i = 0; i < ids.length; i++) {
+      // 队列过长时只展开前 QUEUE_VISIBLE_MAX 项，其余折叠为「另有 N 项」（悬停可看被折叠的科技名）
+      var shown = Math.min(ids.length, QUEUE_VISIBLE_MAX);
+      for (var i = 0; i < shown; i++) {
         (function (tid, idx) {
           var t = C.TECHNOLOGIES[tid];
           var row = h('div', 'research-queue__item');
@@ -1603,6 +1607,16 @@
           row.appendChild(x);
           list.appendChild(row);
         })(ids[i], i);
+      }
+      if (ids.length > shown) {
+        var rest = [];
+        for (var r = shown; r < ids.length; r++) {
+          var tRest = C.TECHNOLOGIES[ids[r]];
+          rest.push(tRest ? tRest.name : ids[r]);
+        }
+        var more = h('div', 'research-queue__more', I18N.t('tech.queueMore', { n: ids.length - shown }));
+        more.title = rest.join('、');
+        list.appendChild(more);
       }
     }
     q.appendChild(list);

@@ -1268,6 +1268,13 @@ html[data-theme='light'] .badge-current { color: #fff; }
 }
 .research-queue > div { display: flex; flex-direction: column; gap: 4px; }
 .research-queue__empty { color: var(--muted); font-size: 12px; }
+.research-queue__more {
+  color: var(--muted);
+  font-size: 11px;
+  padding: 2px 0 2px 18px;   /* 与序号列对齐 */
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
 .research-queue__item {
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr) 24px;
