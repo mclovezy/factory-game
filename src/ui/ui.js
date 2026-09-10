@@ -325,10 +325,11 @@
   }
 
   function canAfford(def) {
-    if (!def || !def.costs || !def.costs.length) return true;
-    // 回收库里有同型建筑：免材料直接放置
-    var reserve = (app.state.buildingReserve || {})[def.id] || 0;
-    if (reserve > 0) return true;
+    if (!def) return false;
+    // 统一走引擎判定：全局建筑卡 / 本行星回收库 / 材料（解锁星际物流后可跨行星调拨）
+    var fn = engineFn('buildingAffordable');
+    if (fn) return !!fn(app.state, app.content, def.id);
+    if (!def.costs || !def.costs.length) return true;
     var stock = (app.state.stock || {});
     for (var i = 0; i < def.costs.length; i++) {
       if ((stock[def.costs[i].itemId] || 0) < def.costs[i].amount) return false;
@@ -337,7 +338,9 @@
   }
 
   function reserveCount(def) {
-    return (def && app.state) ? ((app.state.buildingReserve || {})[def.id] || 0) : 0;
+    if (!def || !app.state) return 0;
+    // 全局建筑卡池：拆下的建筑，任意行星都能免材料取用
+    return (app.state.construction || {})[def.id] || 0;
   }
 
   /** 右上角“当前可用数量”：以最缺的所需资源为准，得出当前可建造座数 */
@@ -480,11 +483,11 @@
         btn.classList.toggle('locked', locked);
         var insufficient = !locked && def && !canAfford(def);
         btn.classList.toggle('insufficient', insufficient);
-        // 回收库徽标
+        // 建筑卡徽标（全局池：拆下的建筑，任意行星可用）
         var rc = reserveCount(def);
         var badge = btn.querySelector('.pb-reserve');
         if (badge) {
-          badge.textContent = rc > 0 ? '♻' + rc : '';
+          badge.textContent = rc > 0 ? '🎫' + rc : '';
           badge.title = rc > 0 ? I18N.t('palette.reserve', { n: rc }) : '';
         }
       }

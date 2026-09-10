@@ -206,15 +206,15 @@
         // 矿炼线：采矿机(铁/铜矿)×2、电弧熔炉(铁块/铜块/磁铁)×3、
         //        制造台Mk.I×6（铜线/磁线圈/电路板/齿轮各司其职，三路同时无限产出）、
         //        矩阵研究站×1、风力涡轮机×4。
-        // buildingReserve = 已拥有、放置免材料，与拆除回收同一机制。
-        st.buildingReserve = st.buildingReserve || {};
+        // construction（全局建筑卡池）= 已拥有、任意行星放置免材料，与拆除回收同一机制。
+        st.construction = st.construction || {};
         var initReserve = {
           mining_machine: 2, arc_smelter: 3, assembler_mk1: 6,
           matrix_lab: 1, wind_turbine: 4
         };
         for (var bk in initReserve) {
           if (Object.prototype.hasOwnProperty.call(initReserve, bk)) {
-            st.buildingReserve[bk] = (st.buildingReserve[bk] || 0) + initReserve[bk];
+            st.construction[bk] = (st.construction[bk] || 0) + initReserve[bk];
           }
         }
         a.state = markLive(st);

@@ -6,8 +6,8 @@ import { loadContentAndEngine, homePlanetId } from './helpers.mjs';
 const { content, engine } = loadContentAndEngine();
 const home = homePlanetId(content);
 
-describe('建筑回收库（拆除 → 免材料再建）', () => {
-  it('整块拆除入回收库，库存不足时仍可免材料重建', () => {
+describe('建筑卡池（拆除 → 全局免材料再建）', () => {
+  it('整块拆除入全局卡池，库存不足时仍可免材料重建', () => {
     const state = engine.createInitialState(content, home);
     // 清空库存，构造"材料不足"场景
     for (const k of Object.keys(state.stock)) state.stock[k] = 0;
@@ -19,26 +19,26 @@ describe('建筑回收库（拆除 → 免材料再建）', () => {
     state.stock.magnetic_coil = 100;
     const r1 = engine.placeBuilding(state, content, { typeId: 'arc_smelter', x: 500, y: 500 });
     assert.equal(r1.ok, true);
-    assert.equal(state.buildingReserve.arc_smelter || 0, 0, '建造时不应产生回收库');
+    assert.equal(state.construction.arc_smelter || 0, 0, '建造时不应产生建筑卡');
 
-    // 拆除 → 入回收库
+    // 拆除 → 入全局建筑卡池
     const r2 = engine.removeBuilding(state, content, r1.id);
     assert.equal(r2.ok, true);
-    assert.equal(state.buildingReserve.arc_smelter, 1);
+    assert.equal(state.construction.arc_smelter, 1);
 
     // 清空库存后再建 → 免材料成功
     for (const k of Object.keys(state.stock)) state.stock[k] = 0;
     const r3 = engine.placeBuilding(state, content, { typeId: 'arc_smelter', x: 700, y: 500 });
-    assert.equal(r3.ok, true, '回收库命中时即使库存为 0 也应可放置');
-    assert.equal(state.buildingReserve.arc_smelter, 0, '回收库应被消耗');
+    assert.equal(r3.ok, true, '建筑卡命中时即使库存为 0 也应可放置');
+    assert.equal(state.construction.arc_smelter, 0, '建筑卡应被消耗');
 
-    // 回收库耗尽后，材料不足 → 拒绝
+    // 卡耗尽后，材料不足 → 拒绝
     const r4 = engine.placeBuilding(state, content, { typeId: 'arc_smelter', x: 900, y: 500 });
     assert.equal(r4.ok, false);
     assert.equal(r4.reason, 'insufficientMaterials');
   });
 
-  it('叠加块 count-1 拆除同样入回收库', () => {
+  it('叠加块 count-1 拆除同样入全局卡池', () => {
     const state = engine.createInitialState(content, home);
     state.stock.iron_ingot = 100; state.stock.stone_brick = 100;
     state.stock.circuit_board = 100; state.stock.magnetic_coil = 100;
@@ -50,10 +50,10 @@ describe('建筑回收库（拆除 → 免材料再建）', () => {
     const r3 = engine.removeBuilding(state, content, r1.id);
     assert.equal(r3.ok, true);
     assert.equal(state.buildings[r1.id].count, 1);
-    assert.equal(state.buildingReserve.arc_smelter, 1, 'count-1 也应回收一台');
+    assert.equal(state.construction.arc_smelter, 1, 'count-1 也应回收一台');
   });
 
-  it('serialize/deserialize 往返保留回收库', () => {
+  it('serialize/deserialize 往返保留建筑卡池，并把老档回收库迁入', () => {
     const state = engine.createInitialState(content, home);
     state.stock.iron_ingot = 100; state.stock.stone_brick = 100;
     state.stock.circuit_board = 100; state.stock.magnetic_coil = 100;
@@ -62,7 +62,14 @@ describe('建筑回收库（拆除 → 免材料再建）', () => {
     const snap = JSON.parse(JSON.stringify(engine.serialize(state)));
     const restored = engine.deserialize(snap, content);
     assert.ok(restored, 'v2 档应可反序列化');
-    assert.equal(restored.buildingReserve.arc_smelter, 1);
+    assert.equal(restored.construction.arc_smelter, 1);
+
+    // 老档兼容：只有 buildingReserve 时，应迁入全局卡池
+    const legacy = JSON.parse(JSON.stringify(snap));
+    legacy.construction = {};
+    legacy.buildingReserve = { arc_smelter: 2 };
+    const upgraded = engine.deserialize(legacy, content);
+    assert.ok((upgraded.construction.arc_smelter || 0) >= 2, '老档回收库应迁入建筑卡池');
   });
 });
 

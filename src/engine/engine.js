@@ -413,6 +413,9 @@
       nextId: 1,
       buildings: {},
       buildingReserve: {},  // 拆除回收库：typeId -> 数量；再放置时优先免材料使用
+      // 全局建筑卡池（跨行星共享）：typeId -> 数量。拆建筑入库；任意行星都能免材料取用，
+      // 这就是「母星造好的建筑，其他星球也能用」的载体（对齐 DSPONLINE 的 state.construction）。
+      construction: {},
       belts: {},
       veins: generateVeins(pid, content),
       stock: {
@@ -1425,6 +1428,61 @@
 
   /* ============================ 命令 ============================ */
 
+  /* ---------------- 建造支付：全局建筑卡 + 跨行星建材调拨 ---------------- */
+  // 支付优先级：全局建筑卡（拆下的/造好的，任意行星通用）→ 本行星回收库 → 材料。
+  // 材料默认只吃本行星库存；解锁星际物流后视为建立帝国调度网，可动用其他行星库存。
+  // 这是「母星造出矿机等，其他星球也能用」的关键，对齐 DSPONLINE 的 state.construction。
+  function canDispatchAcrossPlanets(state) {
+    return (state.unlockedTechs || []).indexOf('interstellar_logistics') >= 0;
+  }
+
+  // 可支取库存的读取者：本行星优先，其后是（可调拨时的）其他行星
+  function stockReadersOf(state) {
+    var list = [{ stock: state.stock || {} }];
+    if (canDispatchAcrossPlanets(state)) {
+      var pids = Object.keys(state.planets || {});
+      for (var i = 0; i < pids.length; i++) {
+        if (pids[i] === state.planetId) continue; // 当前行星已在首位，避免重复
+        var ps = state.planets[pids[i]];
+        if (ps && ps.stock) list.push({ stock: ps.stock });
+      }
+    }
+    return list;
+  }
+
+  // 建造可行性（UI 与引擎共用）：科技已解锁 + 有卡 / 有回收 / 材料（含可调拨）足够
+  function buildingAffordable(state, content, buildingId) {
+    var def = (content.BUILDINGS || {})[buildingId];
+    if (!def) return false;
+    if (def.techId && (content.TECHNOLOGIES || {})[def.techId] &&
+        (state.unlockedTechs || []).indexOf(def.techId) < 0) return false;
+    if (((state.construction || {})[def.id] || 0) > 0) return true;
+    if (((state.buildingReserve || {})[def.id] || 0) > 0) return true;
+    var costs = def.costs || [];
+    if (!costs.length) return true;
+    var readers = stockReadersOf(state);
+    for (var i = 0; i < costs.length; i++) {
+      var total = 0;
+      for (var j = 0; j < readers.length; j++) total += (readers[j].stock[costs[i].itemId] || 0);
+      if (total < costs[i].amount) return false;
+    }
+    return true;
+  }
+
+  // 按 costs 扣料，跨 reader 依次支取（本行星优先）
+  function payCosts(state, content, costs) {
+    var readers = stockReadersOf(state);
+    for (var i = 0; i < costs.length; i++) {
+      var left = costs[i].amount;
+      for (var j = 0; j < readers.length && left > 0; j++) {
+        var stk = readers[j].stock;
+        var has = stk[costs[i].itemId] || 0;
+        var take = Math.min(has, left);
+        if (take > 0) { stk[costs[i].itemId] = has - take; left -= take; }
+      }
+    }
+  }
+
   function placeBuilding(state, content, opt) {
     content = content || {};
     opt = opt || {};
@@ -1433,23 +1491,18 @@
     if (def.techId && (content.TECHNOLOGIES || {})[def.techId] &&
         state.unlockedTechs.indexOf(def.techId) < 0) return errR('techLocked');
 
-    // 材料消耗：回收库（buildingReserve）有该建筑类型时优先免材料使用；
-    // 否则检查 state.stock 是否足够，足够则扣除
+    // 材料消耗：全局建筑卡 → 本行星回收库 → 材料（本行星优先；解锁星际物流后可跨行星调拨）
+    var cards = state.construction || (state.construction = {});
     var reserve = state.buildingReserve || (state.buildingReserve = {});
-    var useReserve = (reserve[def.id] || 0) > 0;
-    if (useReserve) {
+    if ((cards[def.id] || 0) > 0) {
+      cards[def.id] -= 1;
+    } else if ((reserve[def.id] || 0) > 0) {
       reserve[def.id] -= 1;
     } else {
       var costs = def.costs;
       if (costs && costs.length) {
-        for (var ci = 0; ci < costs.length; ci++) {
-          var need = costs[ci];
-          var have = (state.stock || {})[need.itemId] || 0;
-          if (have < need.amount) return errR('insufficientMaterials');
-        }
-        for (var di = 0; di < costs.length; di++) {
-          state.stock[costs[di].itemId] -= costs[di].amount;
-        }
+        if (!buildingAffordable(state, content, def.id)) return errR('insufficientMaterials');
+        payCosts(state, content, costs);
       }
     }
 
@@ -1594,8 +1647,8 @@
     // v2：叠加块 → count-1，到 0 才真正拆除
     if (num(b.count, 1) > 1) {
       b.count -= 1;
-      // 拆下的建筑进入回收库，再放置时免材料
-      var res1 = state.buildingReserve || (state.buildingReserve = {});
+      // 拆下的建筑进入全局建筑卡池，任意行星再放置时免材料
+      var res1 = state.construction || (state.construction = {});
       res1[b.typeId] = (res1[b.typeId] || 0) + 1;
       return okR({ count: b.count });
     }
@@ -1613,8 +1666,8 @@
       }
     }
     delete state.buildings[id];
-    // 整块拆除同样入回收库
-    var res2 = state.buildingReserve || (state.buildingReserve = {});
+    // 整块拆除同样入全局建筑卡池
+    var res2 = state.construction || (state.construction = {});
     res2[b.typeId] = (res2[b.typeId] || 0) + 1;
     var keys = Object.keys(state.belts);
     for (var i = 0; i < keys.length; i++) {
@@ -2220,6 +2273,7 @@
       veins: veins,
       stock: sortedCopy(state.stock || {}),
       buildingReserve: sortedCopy(state.buildingReserve || {}),
+      construction: sortedCopy(state.construction || {}),
       // 多行星物流（系统6）：后台行星包 + 在途运输队列（当前行星取顶层字段）
       planets: planetsToSave(state),
       shipments: (state.shipments || []).map(function (s) {
@@ -2341,6 +2395,23 @@
         if (rn > 0 && (content.BUILDINGS || {})[rk[m]]) st.buildingReserve[rk[m]] = rn;
       }
     }
+
+    // 全局建筑卡池（跨行星共享）：读新字段；老档把回收库一并迁入，保证已拆建筑不丢
+    st.construction = {};
+    (function absorbLegacyCards() {
+      var sources = [data.construction, data.buildingReserve];
+      for (var s = 0; s < sources.length; s++) {
+        var src = sources[s];
+        if (!src || typeof src !== 'object') continue;
+        var cks = Object.keys(src);
+        for (var q = 0; q < cks.length; q++) {
+          var qn = Math.floor(num(src[cks[q]], 0));
+          if (qn > 0 && (content.BUILDINGS || {})[cks[q]]) {
+            st.construction[cks[q]] = (st.construction[cks[q]] || 0) + qn;
+          }
+        }
+      }
+    })();
 
     // 建筑 / 传送带
     st.buildings = {};
@@ -2589,6 +2660,7 @@
     advance: advance,
 
     placeBuilding: placeBuilding,
+    buildingAffordable: buildingAffordable,
     minerAcceptsItem: minerAcceptsItem,
     removeBuilding: removeBuilding,
     moveBuilding: moveBuilding,
