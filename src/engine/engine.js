@@ -255,7 +255,7 @@
       veins['vein-' + itemId] = {
         id: 'vein-' + itemId, itemId: itemId,
         x: round2(x), y: round2(y),
-        miners: 0, buffer: 0, cap: VEIN_CAP, minerType: null
+        miners: 0, buffer: 0, cap: VEIN_CAP, minerType: null, minerCounts: {}
       };
     }
     return veins;
@@ -284,6 +284,52 @@
       return !!it && it.kind === def.mineKind;
     }
     return true;
+  }
+
+  // ---- 矿脉上的设备按型号分摊：让 speed / powerDemandKw 这类个体属性真正生效 ----
+  // 不变量：Σ minerCounts === v.miners，且同一脉只允许一种型号（见 placeBuilding 的 minerType 锁）。
+
+  /** 老存档兜底：没有 minerCounts 时，按当前设备型号或资源品类推断出最可能的基础设备 */
+  function defaultMinerFor(content, itemId) {
+    if ((content.ITEMS[itemId] || {}).kind === 'fluid') {
+      return itemId === 'crude_oil' ? 'oil_extractor' : 'water_pump';
+    }
+    return 'mining_machine';
+  }
+
+  /** 取得各型号台数表（老档首次访问时推断并落到对象上，之后读写同一份） */
+  function minerCountsOf(content, v) {
+    if (v.minerCounts && typeof v.minerCounts === 'object') return v.minerCounts;
+    var inferred = {};
+    var n = Math.max(0, num(v.miners, 0));
+    if (n > 0) {
+      var tid = v.minerType || defaultMinerFor(content, v.itemId);
+      if (tid) inferred[tid] = n;
+    }
+    v.minerCounts = inferred;
+    return inferred;
+  }
+
+  /** 速率权重：Σ(台数 × 该型号 speed)—— 深层采矿机 speed 2 即等于两台采矿机 */
+  function veinSpeedSum(content, v) {
+    var counts = minerCountsOf(content, v);
+    var sum = 0;
+    for (var tid in counts) {
+      var d = (content.BUILDINGS || {})[tid];
+      sum += Math.max(0, num(counts[tid], 0)) * (d ? Math.max(0, num(d.speed, 1)) : 1);
+    }
+    return sum;
+  }
+
+  /** 耗电：Σ(台数 × 该型号 powerDemandKw)，未知型号回退 MINER_DEMAND_KW */
+  function veinPowerDemandKw(content, v) {
+    var counts = minerCountsOf(content, v);
+    var sum = 0;
+    for (var tid in counts) {
+      var d = (content.BUILDINGS || {})[tid];
+      sum += Math.max(0, num(counts[tid], 0)) * (d ? num(d.powerDemandKw, MINER_DEMAND_KW) : MINER_DEMAND_KW);
+    }
+    return sum;
   }
 
   // 距离 ≤ maxDist 的最近矿脉（矿机落脉吸附用）
@@ -421,12 +467,12 @@
         gen += num(def.powerGenerationKw, 0) * Math.max(1, num(b.count, 1)) * mult; // v2：叠加发电 ×N
       }
     }
-    // v2：矿脉上的采矿机也是耗电单元（×miners），恒计入电网 'a'
+    // v2：矿脉上的开采设备也是耗电单元（按型号各自的 powerDemandKw 累加），恒计入电网 'a'
     if (!grid || grid === 'a') {
       var vk = Object.keys(state.veins || {});
       for (i = 0; i < vk.length; i++) {
         var v = state.veins[vk[i]];
-        if (v.miners > 0) demand += MINER_DEMAND_KW * v.miners;
+        if (v.miners > 0) demand += veinPowerDemandKw(content, v);
       }
     }
     var ratio = demand > 0 ? Math.min(1, gen / demand) : 1;
@@ -494,7 +540,7 @@
       if (!(v.miners > 0)) continue;
       var space = v.cap - (v.buffer || 0);
       if (space <= EPS) { v.stalled = true; continue; }
-      var rate = MINER_RATE * v.miners * (ratio == null ? 1 : ratio);
+      var rate = MINER_RATE * veinSpeedSum(content, v) * (ratio == null ? 1 : ratio);
       var before = Math.floor(v.buffer || 0);
       v.buffer = Math.min(v.cap, (v.buffer || 0) + rate * dt);
       var whole = Math.floor(v.buffer);
@@ -1396,10 +1442,12 @@
       var v = findVeinNear(state, x, y, ATTACH_DIST * 2);
       if (!v) return errR('notOnOre');
       if (!minerAcceptsItem(content, def, v.itemId)) return errR('wrongMinerForVein');
-      // 单一型号锁：v.miners 只记数量，混放不同型号会让拆除时分不清拆掉的是哪一台
+      // 单一型号锁：miners 只记数量，混放不同型号会让拆除时分不清拆掉的是哪一台
       if (v.minerType && v.minerType !== def.id) return errR('mixedMinerType');
       v.minerType = def.id;
       v.miners = (v.miners || 0) + 1;
+      var cnt = minerCountsOf(content, v);
+      cnt[def.id] = (cnt[def.id] || 0) + 1;
       return okR({ id: v.id, vein: v.id, miners: v.miners });
     }
 
@@ -1497,7 +1545,7 @@
       name: (content.ITEMS[v.itemId] || {}).name || v.itemId,
       miners: v.miners || 0,
       buffer: round2(v.buffer || 0), cap: v.cap,
-      ratePerSec: round4(MINER_RATE * (v.miners || 0) * power.ratio),
+      ratePerSec: round4(MINER_RATE * veinSpeedSum(content, v) * power.ratio),
       percent: clamp01((v.buffer || 0) / v.cap),
       stalled: !!v.stalled
     };
@@ -1518,7 +1566,9 @@
     if (v) {
       if (!(v.miners > 0)) return errR('nothingToRemove');
       v.miners -= 1;
-      if (v.miners <= 0) v.minerType = null; // 清空型号锁，换另一种设备重新开采
+      var mc = v.minerCounts || {};
+      if (v.minerType && mc[v.minerType] > 0) { mc[v.minerType] -= 1; if (mc[v.minerType] <= 0) delete mc[v.minerType]; }
+      if (v.miners <= 0) { v.minerType = null; v.minerCounts = {}; } // 清空型号锁，换另一种设备重新开采
       return okR({ miners: v.miners });
     }
     var b = state.buildings[id];

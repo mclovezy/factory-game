@@ -198,3 +198,57 @@ describe('开采设备与矿脉品类匹配', () => {
     assert.ok(acidMinable || acidSynth, '硫酸必须可通过开采或合成获得（钛合金依赖它）');
   });
 });
+
+describe('开采设备的个体属性（speed / powerDemandKw）按型号生效', () => {
+  function withTurbines(state, n) {
+    for (let i = 0; i < n; i++) {
+      engine.placeBuilding(state, content, { typeId: 'wind_turbine', x: -400 + 80 * i, y: -700 });
+    }
+  }
+
+  it('深层采矿机 speed:2 让采集速率约为采矿机的 2 倍', () => {
+    const sMM = freshState();
+    withTurbines(sMM, 16);
+    const p1 = veinXY(sMM, 'iron_ore');
+    engine.placeBuilding(sMM, content, { typeId: 'mining_machine', x: p1.x, y: p1.y });
+    engine.advance(sMM, content, 10);
+    const gainMM = sMM.veins['vein-iron_ore'].buffer;
+
+    const sAM = freshState();
+    withTurbines(sAM, 16);
+    const p2 = veinXY(sAM, 'iron_ore');
+    engine.placeBuilding(sAM, content, { typeId: 'advanced_miner', x: p2.x, y: p2.y });
+    engine.advance(sAM, content, 10);
+    const gainAM = sAM.veins['vein-iron_ore'].buffer;
+
+    assert.ok(gainMM > 0, '采矿机应有产出');
+    assert.ok(
+      Math.abs(gainAM - 2 * gainMM) <= 0.05 * gainMM + 1e-6,
+      `深层采矿机应≈2倍速率；实测 采矿机=${gainMM} 深采机=${gainAM}`
+    );
+  });
+
+  it('耗电按各型号 powerDemandKw 累加（深采机 1050kW 而非基础 420）', () => {
+    const s = freshState();
+    const p = veinXY(s, 'iron_ore');
+    const before = engine.powerStats(s, content).demandKw;
+    engine.placeBuilding(s, content, { typeId: 'advanced_miner', x: p.x, y: p.y });
+    const after = engine.powerStats(s, content).demandKw;
+    const def = content.BUILDINGS.advanced_miner;
+    assert.ok(
+      Math.abs(after - before - def.powerDemandKw) <= 1e-6,
+      `新增一台深采机应使需求 +${def.powerDemandKw}kW，实测 +${after - before}`
+    );
+  });
+
+  it('拆除后 minerCounts 账本与 miners 同步归零', () => {
+    const s = freshState();
+    const vid = 'vein-iron_ore';
+    const p = veinXY(s, 'iron_ore');
+    engine.placeBuilding(s, content, { typeId: 'mining_machine', x: p.x, y: p.y });
+    engine.removeBuilding(s, content, vid);
+    assert.equal(s.veins[vid].miners, 0);
+    assert.deepEqual(s.veins[vid].minerCounts, {}, '拆除后账本应清空');
+    assert.equal(s.veins[vid].minerType, null);
+  });
+});
