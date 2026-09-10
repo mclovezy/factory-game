@@ -2035,10 +2035,10 @@ html[data-theme='light'] .badge-current { color: #fff; }
    * ---------------------------------------------------------- */
   const BUILDINGS = {
     // —— 采矿（3）——
-    mining_machine: { id: 'mining_machine', name: '采矿机', shortName: '采矿机', icon: '⛏️', color: '#c49654', kind: 'miner', family: null, tier: 1, w: 80, h: 80, speed: 1, powerDemandKw: 420, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 180, techId: null, description: '安放在矿脉上持续开采矿石，是最早的自动化劳力。' },
-    oil_extractor: { id: 'oil_extractor', name: '原油萃取站', shortName: '萃取站', icon: '🛢️', color: '#c09559', kind: 'miner', family: null, tier: 2, w: 80, h: 80, speed: 1, powerDemandKw: 840, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 300, techId: 'fluid_handling', description: '立在油泉之上把原油源源不断地抽上地面。' },
-    water_pump: { id: 'water_pump', name: '抽水站', shortName: '抽水站', icon: '💧', color: '#599bc0', kind: 'miner', family: null, tier: 1, w: 80, h: 80, speed: 1, powerDemandKw: 300, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 300, techId: 'fluid_handling', description: '部署在水源边抽取水与酸液，化工产线的起点。' },
-    advanced_miner: { id: 'advanced_miner', name: '深层采矿机', shortName: '深采机', icon: '🦾', color: '#cd9d4c', kind: 'miner', family: null, tier: 2, w: 80, h: 80, speed: 2, powerDemandKw: 1050, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 360, techId: 'advanced_mining', description: '以两倍速率深挖矿脉核心，中后期采矿的主力。' },
+    mining_machine: { id: 'mining_machine', name: '采矿机', shortName: '采矿机', icon: '⛏️', color: '#c49654', kind: 'miner', family: null, tier: 1, w: 80, h: 80, speed: 1, powerDemandKw: 420, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 180, techId: null, mineKind: 'solid', description: '安放在矿脉上持续开采矿石，是最早的自动化劳力。' },
+    oil_extractor: { id: 'oil_extractor', name: '原油萃取站', shortName: '萃取站', icon: '🛢️', color: '#c09559', kind: 'miner', family: null, tier: 2, w: 80, h: 80, speed: 1, powerDemandKw: 840, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 300, techId: 'fluid_handling', mineItems: ['crude_oil'], description: '立在油泉之上把原油源源不断地抽上地面。' },
+    water_pump: { id: 'water_pump', name: '抽水站', shortName: '抽水站', icon: '💧', color: '#599bc0', kind: 'miner', family: null, tier: 1, w: 80, h: 80, speed: 1, powerDemandKw: 300, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 300, techId: 'fluid_handling', mineItems: ['water', 'sulfuric_acid', 'hydrogen'], description: '部署在水源边抽取水与酸液，化工产线的起点。' },
+    advanced_miner: { id: 'advanced_miner', name: '深层采矿机', shortName: '深采机', icon: '🦾', color: '#cd9d4c', kind: 'miner', family: null, tier: 2, w: 80, h: 80, speed: 2, powerDemandKw: 1050, powerGenerationKw: 0, inputCapacity: 0, outputCapacity: 360, techId: 'advanced_mining', mineKind: 'solid', description: '以两倍速率深挖矿脉核心，中后期采矿的主力。' },
 
     // —— 熔炉（2）——
     arc_smelter: { id: 'arc_smelter', name: '电弧熔炉', shortName: '熔炉', icon: '🔥', color: '#c9774f', kind: 'machine', family: 'smelter', tier: 1, w: 80, h: 80, speed: 1, powerDemandKw: 360, powerGenerationKw: 0, inputCapacity: 120, outputCapacity: 120, techId: null, description: '用电弧熔炼矿石与煤，冶金链的起点。' },
@@ -2706,7 +2706,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
       veins['vein-' + itemId] = {
         id: 'vein-' + itemId, itemId: itemId,
         x: round2(x), y: round2(y),
-        miners: 0, buffer: 0, cap: VEIN_CAP
+        miners: 0, buffer: 0, cap: VEIN_CAP, minerType: null
       };
     }
     return veins;
@@ -2722,6 +2722,19 @@ html[data-theme='light'] .badge-current { color: #fff; }
     if (state.buildings && state.buildings[id]) return state.buildings[id];
     if (state.veins && state.veins[id]) return state.veins[id];
     return null;
+  }
+
+  // 矿工可采判定：声明 mineItems → 按物品白名单精确匹配；否则声明 mineKind → 按物品 kind 匹配；
+  // 两者都未声明的老 miner 定义不限制（保持向后兼容）。
+  // 不变量：任一可被开采的物品只允许命中一种 miner，避免同一矿脉混放后 removeMiner 拆错类型。
+  function minerAcceptsItem(content, def, itemId) {
+    if (!def || !itemId) return true;
+    if (def.mineItems && def.mineItems.length) return def.mineItems.indexOf(itemId) >= 0;
+    if (def.mineKind) {
+      var it = (content.ITEMS || {})[itemId];
+      return !!it && it.kind === def.mineKind;
+    }
+    return true;
   }
 
   // 距离 ≤ maxDist 的最近矿脉（矿机落脉吸附用）
@@ -3833,6 +3846,10 @@ html[data-theme='light'] .badge-current { color: #fff; }
     if (def.kind === 'miner') {
       var v = findVeinNear(state, x, y, ATTACH_DIST * 2);
       if (!v) return errR('notOnOre');
+      if (!minerAcceptsItem(content, def, v.itemId)) return errR('wrongMinerForVein');
+      // 单一型号锁：v.miners 只记数量，混放不同型号会让拆除时分不清拆掉的是哪一台
+      if (v.minerType && v.minerType !== def.id) return errR('mixedMinerType');
+      v.minerType = def.id;
       v.miners = (v.miners || 0) + 1;
       return okR({ id: v.id, vein: v.id, miners: v.miners });
     }
@@ -3952,6 +3969,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
     if (v) {
       if (!(v.miners > 0)) return errR('nothingToRemove');
       v.miners -= 1;
+      if (v.miners <= 0) v.minerType = null; // 清空型号锁，换另一种设备重新开采
       return okR({ miners: v.miners });
     }
     var b = state.buildings[id];
@@ -4560,7 +4578,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
       var v = state.veins[vkeys[i]];
       veins[vkeys[i]] = {
         id: v.id, itemId: v.itemId, x: v.x, y: v.y,
-        miners: v.miners || 0, buffer: round6(v.buffer || 0), cap: v.cap || VEIN_CAP
+        miners: v.miners || 0, buffer: round6(v.buffer || 0), cap: v.cap || VEIN_CAP,
+        minerType: v.minerType || null
       };
     }
     return {
@@ -4668,7 +4687,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
           x: num(sv.x, 0), y: num(sv.y, 0),
           miners: Math.max(0, num(sv.miners, 0)),
           buffer: Math.max(0, num(sv.buffer, 0)),
-          cap: Math.max(1, num(sv.cap, VEIN_CAP))
+          cap: Math.max(1, num(sv.cap, VEIN_CAP)),
+          minerType: sv.minerType || null
         };
       }
       if (Object.keys(restored).length > 0) st.veins = restored;
@@ -4942,6 +4962,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
     advance: advance,
 
     placeBuilding: placeBuilding,
+    minerAcceptsItem: minerAcceptsItem,
     removeBuilding: removeBuilding,
     moveBuilding: moveBuilding,
     manualMine: manualMine,
@@ -5416,6 +5437,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'reason.unknownBuilding': '未知建筑',
       'reason.techLocked': '需要先研究对应科技',
       'reason.notOnOre': '采矿机必须放在矿脉上',
+      'reason.wrongMinerForVein': '这台设备采不了这种资源',
+      'reason.mixedMinerType': '同一条矿脉只能用同一种开采设备',
       'reason.occupied': '目标位置已被其他类型建筑占用',
       'reason.itemMismatch': '物品类型不匹配：目标无法接收该输出',
       'reason.buildingNotFound': '目标建筑不存在',
@@ -5834,6 +5857,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
       'reason.unknownBuilding': 'Unknown building',
       'reason.techLocked': 'Requires an unresearched technology',
       'reason.notOnOre': 'Miners must be placed on an ore vein',
+      'reason.wrongMinerForVein': 'This extractor cannot mine that resource',
+      'reason.mixedMinerType': 'One vein can only host a single type of extractor',
       'reason.occupied': 'Position occupied by another building type',
       'reason.itemMismatch': 'Item mismatch: the target cannot accept this output',
       'reason.buildingNotFound': 'Target building not found',
@@ -6277,15 +6302,19 @@ html[data-theme='light'] .badge-current { color: #fff; }
       if (!def) return false;
       var E = global.DSP_ENGINE || {};
       if (def.kind === 'miner') {
-        // 矿机：附近须有矿脉
+        // 矿机：附近须有矿脉，且该设备能采这种资源（判定与引擎 placeBuilding 保持一致，取最近的一条）
         var veins = state.veins || {};
         var ks = Object.keys(veins);
+        var best = null, bestD = Infinity;
         for (var i = 0; i < ks.length; i++) {
           var v = veins[ks[i]];
           var dx = v.x - x, dy = v.y - y;
-          if (dx * dx + dy * dy <= BLOCK * BLOCK) return true;
+          var d2 = dx * dx + dy * dy;
+          if (d2 <= BLOCK * BLOCK && d2 < bestD) { bestD = d2; best = v; }
         }
-        return false;
+        if (!best) return false;
+        if (E.minerAcceptsItem && !E.minerAcceptsItem(content(), def, best.itemId)) return false;
+        return true;
       }
       if (E.occupiedBy) return !E.occupiedBy(state, content(), x, y, null);
       // 兜底：重叠检查
@@ -11820,6 +11849,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
     techLocked: '科技尚未解锁',
     notOnOre: '采矿机必须放置在矿脉上',
     notOnVein: '采矿机必须放置在矿脉上',
+    wrongMinerForVein: '这台设备采不了这种资源，请换对应的开采设备',
+    mixedMinerType: '同一条矿脉只能用同一种开采设备',
     buildingNotFound: '未找到目标建筑',
     veinNotFound: '未找到目标矿脉',
     occupied: '该位置已被其他方块占用',

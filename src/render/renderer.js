@@ -206,15 +206,19 @@
       if (!def) return false;
       var E = global.DSP_ENGINE || {};
       if (def.kind === 'miner') {
-        // 矿机：附近须有矿脉
+        // 矿机：附近须有矿脉，且该设备能采这种资源（判定与引擎 placeBuilding 保持一致，取最近的一条）
         var veins = state.veins || {};
         var ks = Object.keys(veins);
+        var best = null, bestD = Infinity;
         for (var i = 0; i < ks.length; i++) {
           var v = veins[ks[i]];
           var dx = v.x - x, dy = v.y - y;
-          if (dx * dx + dy * dy <= BLOCK * BLOCK) return true;
+          var d2 = dx * dx + dy * dy;
+          if (d2 <= BLOCK * BLOCK && d2 < bestD) { bestD = d2; best = v; }
         }
-        return false;
+        if (!best) return false;
+        if (E.minerAcceptsItem && !E.minerAcceptsItem(content(), def, best.itemId)) return false;
+        return true;
       }
       if (E.occupiedBy) return !E.occupiedBy(state, content(), x, y, null);
       // 兜底：重叠检查

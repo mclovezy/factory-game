@@ -255,7 +255,7 @@
       veins['vein-' + itemId] = {
         id: 'vein-' + itemId, itemId: itemId,
         x: round2(x), y: round2(y),
-        miners: 0, buffer: 0, cap: VEIN_CAP
+        miners: 0, buffer: 0, cap: VEIN_CAP, minerType: null
       };
     }
     return veins;
@@ -271,6 +271,19 @@
     if (state.buildings && state.buildings[id]) return state.buildings[id];
     if (state.veins && state.veins[id]) return state.veins[id];
     return null;
+  }
+
+  // 矿工可采判定：声明 mineItems → 按物品白名单精确匹配；否则声明 mineKind → 按物品 kind 匹配；
+  // 两者都未声明的老 miner 定义不限制（保持向后兼容）。
+  // 不变量：任一可被开采的物品只允许命中一种 miner，避免同一矿脉混放后 removeMiner 拆错类型。
+  function minerAcceptsItem(content, def, itemId) {
+    if (!def || !itemId) return true;
+    if (def.mineItems && def.mineItems.length) return def.mineItems.indexOf(itemId) >= 0;
+    if (def.mineKind) {
+      var it = (content.ITEMS || {})[itemId];
+      return !!it && it.kind === def.mineKind;
+    }
+    return true;
   }
 
   // 距离 ≤ maxDist 的最近矿脉（矿机落脉吸附用）
@@ -1382,6 +1395,10 @@
     if (def.kind === 'miner') {
       var v = findVeinNear(state, x, y, ATTACH_DIST * 2);
       if (!v) return errR('notOnOre');
+      if (!minerAcceptsItem(content, def, v.itemId)) return errR('wrongMinerForVein');
+      // 单一型号锁：v.miners 只记数量，混放不同型号会让拆除时分不清拆掉的是哪一台
+      if (v.minerType && v.minerType !== def.id) return errR('mixedMinerType');
+      v.minerType = def.id;
       v.miners = (v.miners || 0) + 1;
       return okR({ id: v.id, vein: v.id, miners: v.miners });
     }
@@ -1501,6 +1518,7 @@
     if (v) {
       if (!(v.miners > 0)) return errR('nothingToRemove');
       v.miners -= 1;
+      if (v.miners <= 0) v.minerType = null; // 清空型号锁，换另一种设备重新开采
       return okR({ miners: v.miners });
     }
     var b = state.buildings[id];
@@ -2109,7 +2127,8 @@
       var v = state.veins[vkeys[i]];
       veins[vkeys[i]] = {
         id: v.id, itemId: v.itemId, x: v.x, y: v.y,
-        miners: v.miners || 0, buffer: round6(v.buffer || 0), cap: v.cap || VEIN_CAP
+        miners: v.miners || 0, buffer: round6(v.buffer || 0), cap: v.cap || VEIN_CAP,
+        minerType: v.minerType || null
       };
     }
     return {
@@ -2217,7 +2236,8 @@
           x: num(sv.x, 0), y: num(sv.y, 0),
           miners: Math.max(0, num(sv.miners, 0)),
           buffer: Math.max(0, num(sv.buffer, 0)),
-          cap: Math.max(1, num(sv.cap, VEIN_CAP))
+          cap: Math.max(1, num(sv.cap, VEIN_CAP)),
+          minerType: sv.minerType || null
         };
       }
       if (Object.keys(restored).length > 0) st.veins = restored;
@@ -2491,6 +2511,7 @@
     advance: advance,
 
     placeBuilding: placeBuilding,
+    minerAcceptsItem: minerAcceptsItem,
     removeBuilding: removeBuilding,
     moveBuilding: moveBuilding,
     manualMine: manualMine,

@@ -57,6 +57,8 @@
     techLocked: '科技尚未解锁',
     notOnOre: '采矿机必须放置在矿脉上',
     notOnVein: '采矿机必须放置在矿脉上',
+    wrongMinerForVein: '这台设备采不了这种资源，请换对应的开采设备',
+    mixedMinerType: '同一条矿脉只能用同一种开采设备',
     buildingNotFound: '未找到目标建筑',
     veinNotFound: '未找到目标矿脉',
     occupied: '该位置已被其他方块占用',
