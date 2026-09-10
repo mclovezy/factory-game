@@ -1266,8 +1266,16 @@ html[data-theme='light'] .badge-current { color: #fff; }
   font-size: 11px;
   text-align: center;
 }
-.research-queue > div { display: flex; flex-direction: column; gap: 4px; }
-.research-queue__empty { color: var(--muted); font-size: 12px; }
+/* 队列列表固定高度：预留「2 项 + 另有 N 项」的最大高度，项数变化不再改变卡片高度 */
+.research-queue > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: 84px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.research-queue__empty { color: var(--muted); font-size: 12px; margin: auto 0; }
 .research-queue__more {
   color: var(--muted);
   font-size: 11px;
@@ -1300,8 +1308,8 @@ html[data-theme='light'] .badge-current { color: #fff; }
 .research-queue__item button:hover { color: var(--danger); background: var(--danger-dim); }
 
 /* 科技树：横向滚动的层级分列 */
-/* 科技页：整页铺满面板可视高度——标题/研究卡/研究队列按内容占位，科技树吃掉剩余高度。
-   （研究队列最多展开两项，其高度变化时科技树自动让位，不再出现底部空白） */
+/* 科技页：定高布局——标题/研究卡按内容占位（队列区高度已固定），科技树吃满剩余高度。
+   队列项数变化不再改变卡片高度，因此科技树高度也随之稳定，页面下方不留白。 */
 #workspace-panel > #panel-technology.active {
   display: flex;
   flex-direction: column;
