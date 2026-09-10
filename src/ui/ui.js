@@ -54,6 +54,8 @@
   ];
 
   /* ---------------- 小工具 ---------------- */
+  // 本文件自带的流量比较阈值（engine.js 的 EPS 是 IIFE 私有的，跨文件引用会 ReferenceError）
+  var FLOW_EPS = 1e-9;
   function $(id) { return els[id] || null; }
   function h(tag, cls, text) {
     var el = document.createElement(tag);
@@ -1033,7 +1035,7 @@
         b.type = 'button';
         b.onclick = function () {
           applyTheme(mode);
-          renderSettings();
+          renderWorkspace('settings', true);
         };
         themeRow.appendChild(b);
       })(themes[t][0], themes[t][1]);
@@ -1159,21 +1161,84 @@
     }
   }
 
+  /* ------------------------------------------------------------
+   * 静态骨架 / 动态数值分层
+   * 面板骨架（分区、列表、按钮、说明文本）只在「结构签名」变化时重建；
+   * 每秒 tick 只重放 dyn() 注册的闭包刷新数字，
+   * 于是滚动位置、输入焦点、拖拽状态都不再被每秒重建打断。
+   * ------------------------------------------------------------ */
+  var _dynSink = null;
+  /** 骨架构建期注册一个动态更新闭包；之后每次 tick 重放 */
+  function dyn(apply) { if (_dynSink) _dynSink.push(apply); }
+  function beginDyn(host) { host.__dyn = []; _dynSink = host.__dyn; }
+  function endDyn() { _dynSink = null; }
+  function applyDyn(host) {
+    var list = (host && host.__dyn) || [];
+    for (var i = 0; i < list.length; i++) {
+      try { list[i](); } catch (e) { /* 单个节点更新失败不应拖垮整页 */ }
+    }
+  }
+  function langSig() { return I18N && I18N.getLang ? I18N.getLang() : ''; }
+
+  function researchInfo() {
+    var fn = engineFn('researchInfo');
+    if (!fn) return null;
+    try { return fn(app.state, app.content); } catch (e) { return null; }
+  }
+  function dysonLayout() {
+    var fn = engineFn('dysonLayout');
+    if (!fn) return null;
+    try { return fn(app.state); } catch (e) { return null; }
+  }
+  function dysonSignature() {
+    var layout = dysonLayout();
+    if (!layout) return 'none';
+    var sig = [];
+    for (var i = 0; i < (layout.nodes || []).length; i++) sig.push(layout.nodes[i].orbit + ':' + layout.nodes[i].slot);
+    sig.sort();
+    return [layout.orbitCount, layout.slotsPerOrbit, sig.join(',')].join('|');
+  }
+  /** 面板骨架签名：只有结构相关因素才参与；纯数值交给 dyn 闭包 */
+  function workspaceSignature(name) {
+    var st = app.state || {};
+    if (name === 'codex') return codexSignature();
+    if (name === 'settings') return langSig();
+    if (name === 'galaxy') return [langSig(), st.planetId, (st.galaxyUnlocked || []).join(',')].join('|');
+    if (name === 'technology') {
+      var r = st.research || {};
+      var info = researchInfo() || {};
+      return [langSig(), techCompact ? 'c' : 's', (st.unlockedTechs || []).join(','),
+        r.current || '-', (r.paused && r.paused.id) || '-', (info.queue || []).join(',')].join('|');
+    }
+    if (name === 'statistics') return [langSig(), statWindow, statKeys().join(',')].join('|');
+    if (name === 'dyson') return [langSig(), dysonSignature()].join('|');
+    return langSig();
+  }
+
   function renderWorkspace(name, force) {
     if (!app) return;
     var now = Date.now();
     if (!force && now - lastHeavyRender < 1000) return;
     lastHeavyRender = now;
+    // 图鉴搜索框输入中不重建（否则会打断输入）
+    if (!force && name === 'codex' && codex.searchFocus) return;
     var panel = $('workspace-panel');
     var host = $(WORKSPACE_PANEL_IDS[name]);
+    if (!host) return;
+    var sig = workspaceSignature(name);
+    // 骨架未变 → 只重放动态数值，不碰 DOM 结构（滚动/焦点天然保留）
+    if (!force && host.__sig === sig) { applyDyn(host); return; }
+    host.__sig = sig;
     var snap = snapshotScroll(panel, host);
-    if (name === 'galaxy') renderGalaxy();
-    else if (name === 'technology') renderTechnology();
-    else if (name === 'statistics') renderStatistics();
-    else if (name === 'dyson') renderDyson();
-    // 图鉴搜索框输入中不重绘（否则每秒重绘会打断输入）
-    else if (name === 'codex') { if (!codex.searchFocus) renderCodex(); }
-    else if (name === 'settings') renderSettings();
+    beginDyn(host);
+    try {
+      if (name === 'galaxy') renderGalaxy();
+      else if (name === 'technology') renderTechnology();
+      else if (name === 'statistics') renderStatistics();
+      else if (name === 'dyson') renderDyson();
+      else if (name === 'codex') renderCodex();
+      else if (name === 'settings') renderSettings();
+    } finally { endDyn(); }
     restoreScroll(panel, host, snap);
   }
 
@@ -1195,7 +1260,7 @@
     if (!res || res.ok !== false) toast(I18N.t('galaxy.travelDone', { name: name }));
     else toast(I18N.t('toast.travelFail', { reason: reasonText(res && res.reason) }));
     refreshUI();
-    renderGalaxy();
+    renderWorkspace('galaxy', true);
   }
 
   // 可视化星图：星系按 distanceLy 径向铺开，行星按 orbitIndex 环绕母星，节点可点击前往
@@ -1360,7 +1425,7 @@
   function setTechLayout(compact) {
     techCompact = !!compact;
     try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(TECH_LAYOUT_KEY, techCompact ? 'compact' : 'standard'); } catch (e) {}
-    renderTechnology();
+    renderWorkspace('technology', true);
   }
 
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
@@ -1385,13 +1450,20 @@
 
   function costChip(cost) {
     var it = app.content.ITEMS[cost.itemId] || {};
-    var have = app.state.scienceStock[cost.itemId] || 0;
-    var chip = h('span', 'tech-cost-chip' + (have >= cost.amount ? ' ok' : ' lacking'));
+    var chip = h('span', 'tech-cost-chip');
     var dot = h('span', 'tech-cost-dot');
     dot.style.background = it.color || '#888888';
+    var num = h('span', 'tech-cost-num');
     chip.appendChild(dot);
-    chip.appendChild(h('span', 'tech-cost-num', fmtAmount(have) + '/' + fmtAmount(cost.amount)));
-    chip.title = (it.name || cost.itemId) + ' · ' + I18N.t('tech.have');
+    chip.appendChild(num);
+    var apply = function () {
+      var have = app.state.scienceStock[cost.itemId] || 0;
+      num.textContent = fmtAmount(have) + '/' + fmtAmount(cost.amount);
+      chip.className = 'tech-cost-chip' + (have >= cost.amount ? ' ok' : ' lacking');
+      chip.title = (it.name || cost.itemId) + ' · ' + I18N.t('tech.have');
+    };
+    apply();
+    dyn(apply);
     return chip;
   }
 
@@ -1409,11 +1481,20 @@
     box.appendChild(nameRow);
 
     var prog = h('div', 'research-progress');
-    var done = cur ? (research.progress || 0) : 0;
-    var demand = cur ? (info && info.demand ? info.demand : techDemand(cur)) : 0;
-    prog.appendChild(progressBar(demand > 0 ? done / demand : 0));
-    prog.title = cur ? (fmtAmount(done) + ' / ' + fmtAmount(demand) + ' ' + I18N.t('tech.matrix')) : '';
+    var bar = progressBar(0);
+    prog.appendChild(bar);
     box.appendChild(prog);
+    // 研究进度每秒推进，只更新进度条与提示，不重建卡片
+    var applyProg = function () {
+      var r = app.state.research || {};
+      var c = r.current ? (app.content.TECHNOLOGIES || {})[r.current] : null;
+      var d = c ? (r.progress || 0) : 0;
+      var dem = c ? techDemand(c) : 0;
+      setProgress(bar, dem > 0 ? d / dem : 0);
+      prog.title = c ? (fmtAmount(d) + ' / ' + fmtAmount(dem) + ' ' + I18N.t('tech.matrix')) : '';
+    };
+    applyProg();
+    dyn(applyProg);
 
     if (cur && (cur.costs || []).length) {
       var costs = h('div', 'research-cost-list');
@@ -1542,12 +1623,21 @@
       unlocked ? '✓' : isCurrent ? '▶' : isPaused ? '❙❙' : isQueued ? '≡' : prereqOk ? '⚗' : '🔒');
     head.appendChild(icon);
     head.appendChild(h('strong', 'tech-node-name', tech.name));
-    if (unlocked) head.appendChild(h('span', 'tech-node-state', '✓'));
-    else if (isCurrent) head.appendChild(h('span', 'tech-node-state running', fmtAmount(research.progress || 0) + '/' + fmtAmount(techDemand(tech))));
-    else if (isPaused) head.appendChild(h('span', 'tech-node-state', I18N.t('tech.paused')));
-    else if (isQueued) head.appendChild(h('span', 'tech-node-state', '#' + (queueIdx + 1)));
-    else head.appendChild(h('span', 'tech-node-state', '0/' + fmtAmount(techDemand(tech))));
+    var stateEl = h('span', 'tech-node-state');
+    head.appendChild(stateEl);
     node.appendChild(head);
+    // 节点状态（研究中进度 / 排队序号）每秒刷新；是否已解锁等结构态由签名触发重建
+    var applyState = function () {
+      var r = app.state.research || {};
+      if (unlocked) stateEl.textContent = '✓';
+      else if (isCurrent) stateEl.textContent = fmtAmount(r.progress || 0) + '/' + fmtAmount(techDemand(tech));
+      else if (isPaused) stateEl.textContent = I18N.t('tech.paused');
+      else if (isQueued) stateEl.textContent = '#' + (queueIdx + 1);
+      else stateEl.textContent = '0/' + fmtAmount(techDemand(tech));
+      stateEl.className = 'tech-node-state' + (isCurrent ? ' running' : '');
+    };
+    applyState();
+    dyn(applyState);
 
     node.appendChild(h('p', 'tech-summary', tech.summary || ''));
 
@@ -1742,12 +1832,56 @@
     var fill = h('div', 'progress-fill');
     fill.style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
     wrap.appendChild(fill);
+    wrap.__fill = fill; // 供 dyn 闭包直接改宽度
     return wrap;
+  }
+  function setProgress(wrap, frac) {
+    if (wrap && wrap.__fill) wrap.__fill.style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
   }
 
   /* ---------------- 统计 ---------------- */
   var STAT_WINDOWS = [10, 60, 300];
   var statWindow = 10;
+  /** 统计数据源（建表与每秒刷新共用，避免重复引擎查询） */
+  function statData() {
+    var rateMap = {}, consMap = {}, stockMap = {};
+    var fnRates = engineFn('productionRates');
+    if (fnRates) {
+      try {
+        var rates = fnRates(app.state, app.content, statWindow) || [];
+        for (var i = 0; i < rates.length; i++) rateMap[rates[i].itemId] = rates[i].perSec;
+      } catch (e) { rateMap = {}; }
+    }
+    var fnCons = engineFn('consumptionRates');
+    if (fnCons) {
+      try {
+        var cons = fnCons(app.state, app.content, statWindow) || [];
+        for (var j = 0; j < cons.length; j++) consMap[cons[j].itemId] = cons[j].perSec;
+      } catch (e) { consMap = {}; }
+    }
+    var fnStock = engineFn('stockList');
+    if (fnStock) {
+      try {
+        var sl = fnStock(app.state) || [];
+        for (var k = 0; k < sl.length; k++) stockMap[sl[k].itemId] = sl[k].amount;
+      } catch (e) { stockMap = {}; }
+    }
+    return {
+      rateMap: rateMap, consMap: consMap, stockMap: stockMap,
+      totals: (app.state.stats && app.state.stats.totalProduced) || {},
+      consumedTotals: (app.state.stats && app.state.stats.totalConsumed) || {}
+    };
+  }
+  function statKeysOf(d) {
+    var keys = [], seen = {};
+    function push(k) { if (k && !seen[k]) { seen[k] = 1; keys.push(k); } }
+    for (var r in d.rateMap) if (Object.prototype.hasOwnProperty.call(d.rateMap, r)) push(r);
+    for (var c in d.consMap) if (Object.prototype.hasOwnProperty.call(d.consMap, c)) push(c);
+    for (var t in d.totals) if (Object.prototype.hasOwnProperty.call(d.totals, t)) push(t);
+    return keys;
+  }
+  function statKeys() { return statKeysOf(statData()); }
+
   function renderStatistics() {
     var host = $('panel-statistics');
     if (!host) return;
@@ -1760,44 +1894,24 @@
       var w = STAT_WINDOWS[wi];
       var wb = h('button', 'btn btn-sm' + (w === statWindow ? ' btn-primary' : ''), I18N.t('stats.windowBtn', { n: w }));
       wb.type = 'button';
-      wb.onclick = (function (ww) { return function () { statWindow = ww; renderStatistics(); }; })(w);
+      wb.onclick = (function (ww) { return function () { statWindow = ww; renderWorkspace('statistics', true); }; })(w);
       winRow.appendChild(wb);
     }
     host.appendChild(winRow);
     host.appendChild(h('div', 'muted stats-window', I18N.t('stats.window', { n: statWindow })));
 
-    var fnRates = engineFn('productionRates');
-    var rates = [];
-    if (fnRates) { try { rates = fnRates(app.state, app.content, statWindow) || []; } catch (e) { rates = []; } }
-    var fnCons = engineFn('consumptionRates');
-    var cons = [];
-    if (fnCons) { try { cons = fnCons(app.state, app.content, statWindow) || []; } catch (e) { cons = []; } }
-    var stockMap = {};
-    var fnStock = engineFn('stockList');
-    if (fnStock) {
-      try {
-        var sl = fnStock(app.state) || [];
-        for (var i = 0; i < sl.length; i++) stockMap[sl[i].itemId] = sl[i].amount;
-      } catch (e) { stockMap = {}; }
-    }
-    var totals = (app.state.stats && app.state.stats.totalProduced) || {};
-    var consumedTotals = (app.state.stats && app.state.stats.totalConsumed) || {};
+    var d = statData();
+    var rateMap = d.rateMap, consMap = d.consMap, stockMap = d.stockMap;
+    var totals = d.totals, consumedTotals = d.consumedTotals;
 
-    var keys = [];
-    var seen = {};
-    function pushKey(k) { if (!seen[k]) { seen[k] = 1; keys.push(k); } }
-    for (var r = 0; r < rates.length; r++) pushKey(rates[r].itemId);
-    for (var c = 0; c < cons.length; c++) pushKey(cons[c].itemId);
-    for (var t in totals) pushKey(t);
+    var keys = statKeysOf(d);
     if (!keys.length) {
       host.appendChild(h('div', 'muted', I18N.t('stats.empty')));
       return;
     }
-    var rateMap = {}, consMap = {};
-    for (var q = 0; q < rates.length; q++) rateMap[rates[q].itemId] = rates[q].perSec;
-    for (var q2 = 0; q2 < cons.length; q2++) consMap[cons[q2].itemId] = cons[q2].perSec;
 
-    // 排序：按净流量（产出-消耗）绝对值降序
+    // 排序：按净流量（产出-消耗）绝对值降序。
+    // 顺序在建表时确定，之后只刷新数值——每秒重排会让行位置乱跳，反而没法看。
     keys.sort(function (a, b) {
       var na = Math.abs((rateMap[b] || 0) - (consMap[b] || 0));
       var nb = Math.abs((rateMap[a] || 0) - (consMap[a] || 0));
@@ -1812,27 +1926,44 @@
     thead.appendChild(trh);
     table.appendChild(thead);
     var tbody = h('tbody');
+    var cells = [];
     for (var k = 0; k < keys.length; k++) {
       var itemId = keys[k];
-      var pro = rateMap[itemId] || 0;
-      var con = consMap[itemId] || 0;
-      var net = pro - con;
       var tr = h('tr');
       var tdItem = h('td');
       tdItem.appendChild(itemChip(itemId));
       tr.appendChild(tdItem);
-      tr.appendChild(h('td', 'num prod', fmtPerSec(pro)));
-      tr.appendChild(h('td', 'num cons', con > 0 ? fmtPerSec(con) : '—'));
-      var netTd = h('td', 'num net ' + (net > EPS ? 'pos' : (net < -EPS ? 'neg' : '')));
-      netTd.textContent = (net > 0 ? '+' : '') + fmtPerSec(net);
-      tr.appendChild(netTd);
-      tr.appendChild(h('td', 'num', stockMap[itemId] !== undefined ? fmtAmount(stockMap[itemId]) : '0'));
-      tr.appendChild(h('td', 'num', fmtAmount(totals[itemId] || 0)));
-      tr.appendChild(h('td', 'num', fmtAmount(consumedTotals[itemId] || 0)));
+      var tdPro = h('td', 'num prod');
+      var tdCon = h('td', 'num cons');
+      var netTd = h('td', 'num net');
+      var tdStock = h('td', 'num');
+      var tdTotal = h('td', 'num');
+      var tdCons = h('td', 'num');
+      tr.appendChild(tdPro); tr.appendChild(tdCon); tr.appendChild(netTd);
+      tr.appendChild(tdStock); tr.appendChild(tdTotal); tr.appendChild(tdCons);
+      cells.push({ id: itemId, pro: tdPro, con: tdCon, net: netTd, stock: tdStock, total: tdTotal, totalCons: tdCons });
       tbody.appendChild(tr);
     }
     table.appendChild(tbody);
     host.appendChild(table);
+
+    // 单个闭包统一刷新全表（每行各查一次引擎太贵）
+    var applyCells = function () {
+      var s = statData();
+      for (var i = 0; i < cells.length; i++) {
+        var c = cells[i];
+        var pro = s.rateMap[c.id] || 0, con = s.consMap[c.id] || 0, net = pro - con;
+        c.pro.textContent = fmtPerSec(pro);
+        c.con.textContent = con > 0 ? fmtPerSec(con) : '—';
+        c.net.textContent = (net > 0 ? '+' : '') + fmtPerSec(net);
+        c.net.className = 'num net ' + (net > FLOW_EPS ? 'pos' : (net < -FLOW_EPS ? 'neg' : ''));
+        c.stock.textContent = s.stockMap[c.id] !== undefined ? fmtAmount(s.stockMap[c.id]) : '0';
+        c.total.textContent = fmtAmount(s.totals[c.id] || 0);
+        c.totalCons.textContent = fmtAmount(s.consumedTotals[c.id] || 0);
+      }
+    };
+    applyCells();
+    dyn(applyCells);
   }
 
   /* ---------------- 戴森球 ---------------- */
@@ -1852,22 +1983,42 @@
     }
 
     var grid = h('div', 'dyson-grid');
-    grid.appendChild(statBlock(I18N.t('dyson.sails'), fmtAmount(dyson.sails || 0) + ' / ' + fmtAmount(goals.sails), I18N.t('dyson.sailGoal', { n: goals.sails })));
-    grid.appendChild(statBlock(I18N.t('dyson.points'), fmtAmount(dyson.spherePoints || 0) + ' / ' + fmtAmount(goals.points), I18N.t('dyson.pointGoal', { n: goals.points })));
-    grid.appendChild(statBlock(I18N.t('dyson.sailsLaunched'), fmtAmount(Math.max(dyson.sailsLaunched || 0, stats.launchedSails || 0))));
-    grid.appendChild(statBlock(I18N.t('dyson.rocketsLaunched'), fmtAmount(Math.max(dyson.rockets || 0, stats.launchedRockets || 0))));
+    grid.appendChild(statBlockLive(I18N.t('dyson.sails'), function () {
+      var dy = app.state.dyson || {}; var st = app.state.stats || {};
+      return fmtAmount(dy.sails || 0) + ' / ' + fmtAmount(goals.sails);
+    }, I18N.t('dyson.sailGoal', { n: goals.sails })));
+    grid.appendChild(statBlockLive(I18N.t('dyson.points'), function () {
+      var dy = app.state.dyson || {};
+      return fmtAmount(dy.spherePoints || 0) + ' / ' + fmtAmount(goals.points);
+    }, I18N.t('dyson.pointGoal', { n: goals.points })));
+    grid.appendChild(statBlockLive(I18N.t('dyson.sailsLaunched'), function () {
+      var dy = app.state.dyson || {}; var st = app.state.stats || {};
+      return fmtAmount(Math.max(dy.sailsLaunched || 0, st.launchedSails || 0));
+    }));
+    grid.appendChild(statBlockLive(I18N.t('dyson.rocketsLaunched'), function () {
+      var dy = app.state.dyson || {}; var st = app.state.stats || {};
+      return fmtAmount(Math.max(dy.rockets || 0, st.launchedRockets || 0));
+    }));
     host.appendChild(grid);
 
-    var fnProg = engineFn('dysonProgress');
-    var prog = 0;
-    if (fnProg) { try { prog = fnProg(app.state) || 0; } catch (e) { prog = 0; } }
     var progSec = h('div', 'dyson-progress');
     progSec.appendChild(h('h3', '', I18N.t('dyson.progress')));
     var line = h('div', 'research-line');
-    line.appendChild(progressBar(prog));
-    line.appendChild(h('span', 'research-num', Math.round(prog * 100) + '%'));
+    var progBar = progressBar(0);
+    var progNum = h('span', 'research-num');
+    line.appendChild(progBar);
+    line.appendChild(progNum);
     progSec.appendChild(line);
     host.appendChild(progSec);
+    var applyProg = function () {
+      var fnProg = engineFn('dysonProgress');
+      var p = 0;
+      if (fnProg) { try { p = fnProg(app.state) || 0; } catch (e) { p = 0; } }
+      setProgress(progBar, p);
+      progNum.textContent = Math.round(p * 100) + '%';
+    };
+    applyProg();
+    dyn(applyProg);
     host.appendChild(h('p', 'settings-hint', I18N.t('dyson.autoHint')));
 
     var row = h('div', 'btn-row');
@@ -1880,7 +2031,7 @@
       if (res.ok !== false) toast(I18N.t('toast.launched'));
       else toast(res.reason === 'noSail' ? I18N.t('dyson.noSail') : I18N.t('toast.fail', { reason: reasonText(res.reason) }));
       refreshUI();
-      renderDyson();
+      renderWorkspace('dyson', true);
     };
     var rocketBtn = h('button', 'btn btn-primary', I18N.t('dyson.launchRocket'));
     rocketBtn.type = 'button';
@@ -1891,7 +2042,7 @@
       if (res.ok !== false) toast(I18N.t('toast.launched'));
       else toast(res.reason === 'noRocket' ? I18N.t('dyson.noRocket') : I18N.t('toast.fail', { reason: reasonText(res.reason) }));
       refreshUI();
-      renderDyson();
+      renderWorkspace('dyson', true);
     };
     row.appendChild(sailBtn);
     row.appendChild(rocketBtn);
@@ -1913,10 +2064,22 @@
     var sec = h('section', 'dyson-planner');
     sec.appendChild(h('h3', '', I18N.t('dyson.planner')));
     var info = h('div', 'dyson-planner-info');
-    info.appendChild(h('span', 'dyson-pill', I18N.t('dyson.freePoints', { n: fmtAmount(layout.freePoints) })));
-    info.appendChild(h('span', 'dyson-pill', I18N.t('dyson.nodeCount', { n: layout.nodes.length })));
-    info.appendChild(h('span', 'dyson-pill', I18N.t('dyson.nodeGen', { kw: fmtKw(layout.nodeGenKw) })));
-    info.appendChild(h('span', 'dyson-pill muted-pill', I18N.t('dyson.nodeCost', { n: layout.nodeCost })));
+    var pillFree = h('span', 'dyson-pill');
+    var pillCount = h('span', 'dyson-pill');
+    var pillGen = h('span', 'dyson-pill');
+    var pillCost = h('span', 'dyson-pill muted-pill');
+    info.appendChild(pillFree); info.appendChild(pillCount);
+    info.appendChild(pillGen); info.appendChild(pillCost);
+    var applyPills = function () {
+      var l = dysonLayout();
+      if (!l) return;
+      pillFree.textContent = I18N.t('dyson.freePoints', { n: fmtAmount(l.freePoints) });
+      pillCount.textContent = I18N.t('dyson.nodeCount', { n: (l.nodes || []).length });
+      pillGen.textContent = I18N.t('dyson.nodeGen', { kw: fmtKw(l.nodeGenKw) });
+      pillCost.textContent = I18N.t('dyson.nodeCost', { n: l.nodeCost });
+    };
+    applyPills();
+    dyn(applyPills);
     sec.appendChild(info);
 
     var SIZE = 360, CX = SIZE / 2, CY = SIZE / 2;
@@ -1951,6 +2114,7 @@
       nodeBySlot[nd.orbit + ':' + nd.slot] = true;
     }
     var dragging = null; // { orbit, slot }
+    var dots = [];       // 空槽位点，颜色随可用点数变化
 
     for (var ro = 0; ro < layout.orbitCount; ro++) {
       for (var sl = 0; sl < layout.slotsPerOrbit; sl++) {
@@ -1973,22 +2137,17 @@
             });
             svg.appendChild(node);
           } else {
-            var canBuild = layout.freePoints >= layout.nodeCost;
-            var dot = el('circle', {
-              cx: pos.x, cy: pos.y, r: 3.5,
-              fill: canBuild ? 'rgba(120,160,240,0.55)' : 'rgba(120,140,170,0.25)',
-              stroke: 'none'
+            var dot = el('circle', { cx: pos.x, cy: pos.y, r: 3.5, fill: 'rgba(120,140,170,0.25)', stroke: 'none' });
+            dot.style.cursor = 'pointer';
+            dots.push(dot);
+            // 始终可点：点数不足时引擎返回原因，由提示告知
+            dot.addEventListener('click', function () {
+              var fnP = engineFn('placeDysonNode');
+              var resP = callCommand(['placeDysonNode'], [orbit, slot], fnP ? function () { return fnP(app.state, app.content, orbit, slot); } : null);
+              if (resP && resP.ok === false) toast(reasonText(resP.reason));
+              else toast(I18N.t('dyson.nodePlaced'));
+              renderWorkspace('dyson', true);
             });
-            if (canBuild) {
-              dot.style.cursor = 'pointer';
-              dot.addEventListener('click', function () {
-                var fnP = engineFn('placeDysonNode');
-                var resP = callCommand(['placeDysonNode'], [orbit, slot], fnP ? function () { return fnP(app.state, app.content, orbit, slot); } : null);
-                if (resP && resP.ok === false) toast(reasonText(resP.reason));
-                else toast(I18N.t('dyson.nodePlaced'));
-                renderDyson();
-              });
-            }
             svg.appendChild(dot);
           }
         })(ro, sl);
@@ -2015,7 +2174,7 @@
           fnM ? function () { return fnM(app.state, app.content, dragging.orbit, dragging.slot, best.orbit, best.slot); } : null);
         if (resM && resM.ok === false) toast(reasonText(resM.reason));
         dragging = null;
-        renderDyson();
+        renderWorkspace('dyson', true);
       } else {
         dragging = null;
       }
@@ -2031,11 +2190,22 @@
       var resR = callCommand(['removeDysonNode'], [orbit, slot], fnR ? function () { return fnR(app.state, app.content, orbit, slot); } : null);
       if (resR && resR.ok === false) toast(reasonText(resR.reason));
       else toast(I18N.t('dyson.nodeRemoved'));
-      renderDyson();
+      renderWorkspace('dyson', true);
     });
     sec.appendChild(svg);
     sec.appendChild(h('p', 'settings-hint', I18N.t('dyson.plannerHint')));
     host.appendChild(sec);
+
+    // 空槽位高亮：点数够就点亮（不重建 SVG，拖拽状态得以保留）
+    var applyDots = function () {
+      var l = dysonLayout();
+      if (!l) return;
+      var can = l.freePoints >= l.nodeCost;
+      var fill = can ? 'rgba(120,160,240,0.55)' : 'rgba(120,140,170,0.25)';
+      for (var i = 0; i < dots.length; i++) dots[i].setAttribute('fill', fill);
+    };
+    applyDots();
+    dyn(applyDots);
 
     function hexPoints(cx, cy, r) {
       var pts = [];
@@ -2051,6 +2221,18 @@
     block.appendChild(h('div', 'stat-label', label));
     block.appendChild(h('div', 'stat-value', value));
     if (sub) block.appendChild(h('div', 'stat-sub', sub));
+    return block;
+  }
+  /** 数值随时间变化的统计块：骨架只建一次，数值由 dyn 闭包刷新 */
+  function statBlockLive(label, valueFn, sub) {
+    var block = h('div', 'stat-block');
+    block.appendChild(h('div', 'stat-label', label));
+    var val = h('div', 'stat-value');
+    block.appendChild(val);
+    if (sub) block.appendChild(h('div', 'stat-sub', sub));
+    var apply = function () { val.textContent = valueFn(); };
+    apply();
+    dyn(apply);
     return block;
   }
 
@@ -2073,16 +2255,18 @@
     { id: 'planets', key: 'codex.tabPlanets' }
   ];
   // 图鉴视图状态（模块级，切 tab / 选中 / 搜索词都在这里，重绘不丢）
-  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, query: '', searchFocus: false, sig: '' };
+  var codex = { tab: 'items', itemId: null, buildingId: null, planetId: null, autoId: null, query: '', searchFocus: false };
+  // 自动选中项（未手动点选时高亮用）：不进签名，避免「建骨架→改签名→再建一次」
+  function codexActiveId() { return codex.itemId || codex.buildingId || codex.planetId || codex.autoId; }
 
   function codexJumpItem(id) {
-    codex.tab = 'items'; codex.itemId = id; codex.query = ''; renderCodex();
+    codex.tab = 'items'; codex.itemId = id; codex.query = ''; renderWorkspace('codex', true);
   }
   function codexJumpBuilding(id) {
-    codex.tab = 'buildings'; codex.buildingId = id; codex.query = ''; renderCodex();
+    codex.tab = 'buildings'; codex.buildingId = id; codex.query = ''; renderWorkspace('codex', true);
   }
   function codexJumpPlanet(id) {
-    codex.tab = 'planets'; codex.planetId = id; codex.query = ''; renderCodex();
+    codex.tab = 'planets'; codex.planetId = id; codex.query = ''; renderWorkspace('codex', true);
   }
   function codexMatch(text) {
     var q = codex.query ? String(codex.query).toLowerCase() : '';
@@ -2096,7 +2280,7 @@
     input.className = 'codex-search-input';
     input.placeholder = I18N.t(phKey);
     input.value = codex.query;
-    input.oninput = function () { codex.query = input.value; renderCodex(); };
+    input.oninput = function () { codex.query = input.value; renderWorkspace('codex', true); };
     input.onfocus = function () { codex.searchFocus = true; };
     input.onblur = function () { codex.searchFocus = false; };
     wrap.appendChild(input);
@@ -2134,6 +2318,17 @@
     var row = h('div', 'codex-kv');
     row.appendChild(h('dt', '', label));
     row.appendChild(h('dd', '', value));
+    return row;
+  }
+  /** 数值会变的词条（库存/累计产出）：骨架一次，数值交给 dyn */
+  function codexKvLive(label, valueFn) {
+    var row = h('div', 'codex-kv');
+    row.appendChild(h('dt', '', label));
+    var dd = h('dd');
+    row.appendChild(dd);
+    var apply = function () { dd.textContent = valueFn(); };
+    apply();
+    dyn(apply);
     return row;
   }
   function codexItemLink(itemId, amount) {
@@ -2231,18 +2426,11 @@
     host.appendChild(h('p', 'muted codex-hint', text));
   }
 
-  /** 图鉴内容签名：仅当选中/搜索/库存/科技/语言变化时重绘，避免每秒重建打断滚动 */
+  /** 图鉴骨架签名：只含结构因素（选中/搜索/语言/解锁范围）。
+   *  库存与累计产出是纯数值，交给 codexKvLive 的 dyn 闭包刷新，不触发重建。 */
   function codexSignature() {
     var st = app.state || {};
     var parts = [codex.tab, codex.itemId, codex.buildingId, codex.planetId, codex.query, I18N.t('codex.title')];
-    var stock = st.stock || {}, keys = [];
-    for (var k in stock) if (Object.prototype.hasOwnProperty.call(stock, k)) keys.push(k + ':' + Math.floor(stock[k] || 0));
-    keys.sort();
-    parts.push(keys.join(','));
-    var prod = (st.stats && st.stats.totalProduced) || {}, pk = [];
-    for (var p in prod) if (Object.prototype.hasOwnProperty.call(prod, p)) pk.push(p + ':' + Math.floor(prod[p] || 0));
-    pk.sort();
-    parts.push(pk.join(','));
     parts.push((st.unlockedTechs || []).length + '/' + (st.galaxyUnlocked || []).length);
     return parts.join('|');
   }
@@ -2250,9 +2438,6 @@
   function renderCodex() {
     var host = $('panel-codex');
     if (!host) return;
-    var sig = codexSignature();
-    if (sig === codex.sig) return;
-    codex.sig = sig;
     clear(host);
     host.appendChild(h('h2', 'ws-title', I18N.t('codex.title')));
     var tabs = h('div', 'btn-row codex-tabs');
@@ -2260,7 +2445,7 @@
       (function (tab) {
         var btn = h('button', 'btn btn-sm' + (codex.tab === tab.id ? ' btn-primary' : ''), I18N.t(tab.key));
         btn.type = 'button';
-        btn.onclick = function () { codex.tab = tab.id; codex.query = ''; renderCodex(); };
+        btn.onclick = function () { codex.tab = tab.id; codex.query = ''; renderWorkspace('codex', true); };
         tabs.appendChild(btn);
       })(CODEX_TABS[i]);
     }
@@ -2293,7 +2478,7 @@
       aside.appendChild(h('small', 'codex-index-sub', I18N.t(CATEGORY_KEYS[cat] || cat) + ' · ' + items.length));
       for (var ii = 0; ii < items.length; ii++) {
         (function (it) {
-          aside.appendChild(codexIndexItem(codex.itemId === it.id, it.color, it.name, it.symbol || '', function () { codexJumpItem(it.id); }));
+          aside.appendChild(codexIndexItem(codexActiveId() === it.id, it.color, it.name, it.symbol || '', function () { codexJumpItem(it.id); }));
         })(items[ii]);
       }
     }
@@ -2305,7 +2490,7 @@
     if (!id) {
       codexIndexHint(detail, I18N.t('codex.noMatch'));
     } else {
-      codex.itemId = id;
+      codex.autoId = id;
       var it = C.item(id);
       var head = h('header', 'codex-detail-head');
       var sw = h('span', 'codex-detail-swatch');
@@ -2319,9 +2504,13 @@
       detail.appendChild(h('p', 'codex-detail-desc', it.description || ''));
 
       var dl = h('dl', 'codex-kvs');
-      dl.appendChild(codexKv(I18N.t('codex.stock'), fmtAmount((app.state.stock || {})[id] || 0)));
-      var produced = (app.state.stats && app.state.stats.totalProduced) || {};
-      dl.appendChild(codexKv(I18N.t('codex.totalProduced'), fmtAmount(produced[id] || 0)));
+      dl.appendChild(codexKvLive(I18N.t('codex.stock'), function () {
+        return fmtAmount((app.state.stock || {})[id] || 0);
+      }));
+      dl.appendChild(codexKvLive(I18N.t('codex.totalProduced'), function () {
+        var pr = (app.state.stats && app.state.stats.totalProduced) || {};
+        return fmtAmount(pr[id] || 0);
+      }));
       detail.appendChild(dl);
 
       // 天然来源（哪些行星的矿脉里有它）
@@ -2412,7 +2601,7 @@
       aside.appendChild(h('small', 'codex-index-sub', I18N.t(BUILDING_KIND_KEYS[kinds[ki]] || kinds[ki]) + ' · ' + vis.length));
       for (i = 0; i < vis.length; i++) {
         (function (bd) {
-          aside.appendChild(codexIndexItem(codex.buildingId === bd.id, bd.color, bd.name, bd.shortName || '', function () { codexJumpBuilding(bd.id); }));
+          aside.appendChild(codexIndexItem(codexActiveId() === bd.id, bd.color, bd.name, bd.shortName || '', function () { codexJumpBuilding(bd.id); }));
         })(vis[i]);
       }
     }
@@ -2424,7 +2613,7 @@
     if (!id) {
       codexIndexHint(detail, I18N.t('codex.noMatch'));
     } else {
-      codex.buildingId = id;
+      codex.autoId = id;
       var bb = C.building(id);
       var head = h('header', 'codex-detail-head');
       var icon = h('span', 'codex-detail-icon', bb.icon || '');
@@ -2505,7 +2694,7 @@
       aside.appendChild(h('small', 'codex-index-sub', systems[sid].name + ' · ' + vis.length));
       for (var vi = 0; vi < vis.length; vi++) {
         (function (p) {
-          aside.appendChild(codexIndexItem(codex.planetId === p.id, p.color, p.name, p.code || '', function () { codexJumpPlanet(p.id); }));
+          aside.appendChild(codexIndexItem(codexActiveId() === p.id, p.color, p.name, p.code || '', function () { codexJumpPlanet(p.id); }));
         })(vis[vi]);
       }
     }
@@ -2517,7 +2706,7 @@
     if (!id) {
       codexIndexHint(detail, I18N.t('codex.noMatch'));
     } else {
-      codex.planetId = id;
+      codex.autoId = id;
       var p = C.planet(id);
       var sys = systems[p.systemId] || {};
       var sysUnlocked = unlocked.indexOf(p.systemId) >= 0;
