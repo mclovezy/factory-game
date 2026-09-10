@@ -1440,8 +1440,11 @@
 
   /* ---------------- 科技树（对齐 DSPONLINE：研究焦点 + 层级分列网格 + 节点卡片） ---------------- */
   var TECH_LAYOUT_KEY = 'dspFactory.techLayout';
-  var techCompact = false;
-  try { if (typeof window !== 'undefined' && window.localStorage) techCompact = window.localStorage.getItem(TECH_LAYOUT_KEY) === 'compact'; } catch (e) { techCompact = false; }
+  // 默认精简模式：仅当用户显式选过「标准」时才用标准布局
+  var techCompact = true;
+  try {
+    if (typeof window !== 'undefined' && window.localStorage && window.localStorage.getItem(TECH_LAYOUT_KEY) === 'standard') techCompact = false;
+  } catch (e) { techCompact = true; }
 
   function setTechLayout(compact) {
     techCompact = !!compact;
@@ -1517,59 +1520,13 @@
     applyProg();
     dyn(applyProg);
 
+    // 成本行常驻占位：空闲与研究中卡片结构一致，研究块高度恒定
+    // （暂停/取消按钮已移除，不再有「点击研究后多出一行」导致的高度跳动）
+    var costs = h('div', 'research-cost-list');
     if (cur && (cur.costs || []).length) {
-      var costs = h('div', 'research-cost-list');
       for (var i = 0; i < cur.costs.length; i++) costs.appendChild(costChip(cur.costs[i]));
-      box.appendChild(costs);
     }
-
-    var acts = h('div', 'research-actions');
-    if (cur) {
-      var pauseBtn = h('button', 'btn btn-sm', I18N.t('tech.pause'));
-      pauseBtn.type = 'button';
-      pauseBtn.title = '停止推进并保留研究进度';
-      pauseBtn.onclick = function () {
-        var fn = engineFn('pauseResearch');
-        var res = fn ? fn(app.state, app.content) : { ok: false };
-        if (res && res.ok !== false) toast(I18N.t('tech.pausedToast', { name: cur.name }));
-        else toast(I18N.t('toast.fail', { reason: reasonText(res && res.reason) }));
-        refreshUI();
-      };
-      acts.appendChild(pauseBtn);
-      var cancelBtn = h('button', 'btn btn-sm', I18N.t('tech.cancel'));
-      cancelBtn.type = 'button';
-      cancelBtn.title = '取消当前项目，已投入矩阵不返还';
-      cancelBtn.onclick = function () {
-        var fn = engineFn('cancelResearch');
-        var res = fn ? fn(app.state, app.content, cur.id) : { ok: false };
-        if (res && res.ok !== false) toast(I18N.t('tech.canceledToast', { name: cur.name }));
-        else toast(I18N.t('toast.fail', { reason: reasonText(res && res.reason) }));
-        refreshUI();
-      };
-      acts.appendChild(cancelBtn);
-    } else if (paused) {
-      var resumeBtn = h('button', 'btn btn-sm btn-primary', I18N.t('tech.resume'));
-      resumeBtn.type = 'button';
-      resumeBtn.onclick = function () {
-        var fn = engineFn('resumeResearch');
-        var res = fn ? fn(app.state, app.content) : { ok: false };
-        if (res && res.ok !== false) toast(I18N.t('tech.resumedToast', { name: paused.name }));
-        else toast(I18N.t('toast.fail', { reason: reasonText(res && res.reason) }));
-        refreshUI();
-      };
-      acts.appendChild(resumeBtn);
-    }
-    if (acts.children.length) box.appendChild(acts);
-
-    if (paused && cur) {
-      var pRow = h('div', 'research-paused-summary');
-      pRow.appendChild(h('span', '', I18N.t('tech.paused') + '：'));
-      pRow.appendChild(h('strong', '', paused.name));
-      pRow.appendChild(h('button', 'btn btn-sm', I18N.t('tech.pausedWait')));
-      pRow.lastChild.disabled = true;
-      pRow.lastChild.title = I18N.t('tech.pausedHint');
-      box.appendChild(pRow);
-    }
+    box.appendChild(costs);
 
     box.appendChild(techQueueBox(info));
     return box;

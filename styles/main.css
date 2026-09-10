@@ -1233,16 +1233,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
 .research-progress { display: flex; align-items: center; gap: 8px; }
 .research-progress .progress { flex: 1 1 auto; }
 .research-progress span { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.research-cost-list { display: flex; flex-wrap: wrap; gap: 5px; }
-.research-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.research-paused-summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.research-paused-summary strong { color: var(--warn); }
+.research-cost-list { display: flex; flex-wrap: wrap; gap: 5px; min-height: 21px; align-content: flex-start; }
 
 .research-queue {
   border-top: 1px dashed var(--border);
