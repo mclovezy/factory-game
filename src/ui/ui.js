@@ -41,7 +41,8 @@
   /* 契约 id 清单（缺失即在 init 时 console.error 汇报） */
   var REQUIRED_IDS = [
     'canvas', 'sidebar', 'palette', 'inspector', 'stock', 'stock-dock', 'sidebar-toggle',
-    'topbar', 'brand', 'metric-power', 'metric-matrix', 'metric-dyson', 'metric-time',
+    'topbar', 'brand', 'metric-power', 'metric-matrix', 'metric-research', 'metric-dyson', 'metric-time',
+    'canvas-status', 'canvas-status-text', 'canvas-status-speed',
     'workspace-tabs', 'btn-pause', 'btn-speed', 'btn-menu',
     'statusbar', 'mode-hint', 'stat-buildings', 'stat-belts', 'stat-zoom', 'stat-fps',
     'menu-overlay', 'save-slots', 'btn-new-save', 'btn-export',
