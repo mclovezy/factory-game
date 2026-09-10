@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="jiPq2EjnxsGjVYhe2Zx2by">
-<head data-page-node-id="Bj7XSG1YvvD7qdXy4ZHK5W">
-  <meta charset="UTF-8" data-page-node-id="6JSIohVrlBojLDxTT2fKiY">
+<html lang="zh-CN" data-page-node-id="0W8BRwDyAi2bczmjkDBO7G">
+<head data-page-node-id="buHdZSKNQC8qiM53VOcyH3">
+  <meta charset="UTF-8" data-page-node-id="9gTnJ3Hz9n2faacCuc6L65">
   <!-- viewport-fit=cover 适配刘海屏；user-scalable=no 防止双击缩放与画布手势冲突 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="C9yGSoV40dYPJExFBaA69n">
-  <meta name="theme-color" content="#0b1020" data-page-node-id="IjC6dKfD7rdv6OrPSnsEYF">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="vlLXbRJEpo3MTbqTnBNAGW">
+  <meta name="theme-color" content="#0b1020" data-page-node-id="z4YNKC0GMGPf8lovwcxjQs">
   <title>星穹工厂 · 挂机自动化</title>
   <style>
 /* ===== styles/main.css ===== */
@@ -215,8 +215,8 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 12px;
+  gap: 5px;
+  padding: 0 6px;
   background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
@@ -266,35 +266,41 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
 
 #brand {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 1px;
   color: var(--accent-2);
   white-space: nowrap;
-  padding-right: 6px;
+  padding: 4px 10px;
   user-select: none;
-  max-width: 170px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: linear-gradient(145deg, var(--panel) 0%, var(--panel-2) 100%);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-2);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* 顶栏指标卡（借鉴 DSPONLINE game-header：图标 + 标签 + 大数值 + 趋势着色） */
 .metrics {
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 4px;
   min-width: 0;
+  margin-right: auto;
 }
 .metric {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-columns: 22px minmax(0, 1fr);
   align-content: center;
-  column-gap: 8px;
+  column-gap: 6px;
   row-gap: 1px;
-  min-width: 92px;
+  min-width: 110px;
   padding: 5px 12px;
   background: linear-gradient(145deg, var(--panel) 0%, var(--panel-2) 100%);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-left: 4px solid var(--accent);
   border-radius: 10px;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -302,18 +308,18 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
 .metric-icon {
   grid-row: 1 / span 2;
   align-self: center;
-  font-size: 15px;
+  font-size: 17px;
   font-style: normal;
   color: var(--accent);
 }
 .metric-label {
   overflow: hidden;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
   text-overflow: ellipsis;
 }
 .metric-value {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.15;
   font-weight: 700;
   color: var(--text-strong);
@@ -328,7 +334,7 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .metric-sub .grid-chip { font-size: 9px; padding: 0 4px; }
-.metric--matrix { min-width: 150px; }
+.metric--matrix { min-width: 170px; }
 .metric-badges {
   display: flex;
   align-items: center;
@@ -341,17 +347,14 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
 .metric.tone-negative .metric-icon, .metric.tone-negative .metric-value { color: var(--status-danger-text); }
 .metric.tone-negative { border-color: var(--status-danger-border); }
 
-.topbar-spacer { flex: 1 1 auto; }
-
 #workspace-tabs {
   display: flex;
   align-items: center;
-  gap: 3px;
-  margin-left: auto;
+  gap: 2px;
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 3px;
+  padding: 2px;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
@@ -359,8 +362,8 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   border: none;
   background: transparent;
   border-radius: 999px;
-  min-height: 32px;
-  padding: 4px 14px;
+  min-height: 30px;
+  padding: 3px 10px;
   color: var(--muted);
   white-space: nowrap;
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
@@ -377,8 +380,7 @@ html[data-theme='light'] .workspace-tab.active { color: #ffffff; }
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
+  gap: 3px;
   flex-shrink: 0;
 }
 .topbar-actions button {
@@ -1669,154 +1671,154 @@ html[data-theme='light'] .badge-current { color: #fff; }
 
 </style>
 </head>
-<body data-page-node-id="DhdMzk3YSGngA4mCqjx3Aw">
-  <noscript data-page-node-id="xcHs5FShmjtcMQNmoeJ8WL">
-    <div style="padding:24px;color:#dfe7ff;font-family:sans-serif" data-page-node-id="JW8Tldp3LPduzkerBI0fIc">
+<body data-page-node-id="UWMtWe4eUzAhoowvK9TOim">
+  <noscript data-page-node-id="meLKYrQBbaTKlNZFchhI9S">
+    <div style="padding:24px;color:#dfe7ff;font-family:sans-serif" data-page-node-id="nm5hLMPO6SYDbGBVONDeaN">
       本游戏需要在浏览器中启用 JavaScript 才能运行。
     </div>
   </noscript>
 
   <!-- 游戏画布（星空 / 矿脉 / 建筑 / 传送带全部由 Canvas 绘制） -->
-  <canvas id="canvas" data-page-node-id="7wbGiBjkGY2JF2C0cRGIaj"></canvas>
+  <canvas id="canvas" data-page-node-id="pAKeodFMtZIbidBl4qm2BQ"></canvas>
 
   <!-- 画布左上角状态胶囊（运行/暂停 + 速度倍率，借鉴 DSPONLINE canvas-status） -->
-  <div id="canvas-status" class="canvas-status" aria-live="polite" data-page-node-id="yNHzzjezcDpJXlxCEC3siS">
-    <span id="canvas-status-text" data-page-node-id="7xZ8WARCxMOMvhOBlGTANX">运行中</span>
-    <strong id="canvas-status-speed" data-page-node-id="2rvsHWgDAIjlsKMhFYziaD">×1</strong>
+  <div id="canvas-status" class="canvas-status" aria-live="polite" data-page-node-id="aBsZ6hkHlbvLcpPyQx115i">
+    <span id="canvas-status-text" data-page-node-id="PcIL1XtFQ4FMAvBT9u8d5z">运行中</span>
+    <strong id="canvas-status-speed" data-page-node-id="l1AsdZMwWkfEEBBakjo2aj">×1</strong>
   </div>
 
   <!-- ======================= 顶栏 ======================= -->
-  <header id="topbar" data-page-node-id="Fcr3K7WeGx6SBOlP1V5bUp">
-    <div id="brand" data-page-node-id="BdXsEERMvZqzShKoVMZKqc">星穹工厂</div>
-    <div class="metrics" data-page-node-id="4XElDsfRqyaHgvcgDQ23Sb">
-      <div id="metric-power" class="metric" title="电力" data-page-node-id="WtVPJi3L3A0OrvMohMWsC8">
-        <span class="metric-icon" data-page-node-id="wG3uAddWPDa2Cl9uy9qJiA">⚡</span>
-        <span class="metric-label" data-page-node-id="7CznyyPObf7nW0SO5Mfb0b">电力</span>
-        <strong class="metric-value" data-page-node-id="3OA9wNdMYkJy95SowsGYHB">--</strong>
-        <span class="metric-sub" data-page-node-id="iUaJ3sh4g6IMkCmxTLjyiY">--</span>
+  <header id="topbar" data-page-node-id="SFN8cZGOBHZM1LFvPxCkJv">
+    <div id="brand" data-page-node-id="liJnEsG8A1qEM0GAWu3SYf">星穹工厂</div>
+    <div class="metrics" data-page-node-id="yBEOngVRvaVGBGtNwzgnd7">
+      <div id="metric-power" class="metric" title="电力" data-page-node-id="p6P7dkOSJHmYCPWJi1sR9X">
+        <span class="metric-icon" data-page-node-id="ejQel0ZIUaM6XIwTZOHwKM">⚡</span>
+        <span class="metric-label" data-page-node-id="r5B1MRgIq5TQOJj2Czj1F0">电力</span>
+        <strong class="metric-value" data-page-node-id="NHmTfGPJSAMVpE93DHX6eS">--</strong>
+        <span class="metric-sub" data-page-node-id="OCzxCeSHnK4tj5LR0nUAE7">--</span>
       </div>
-      <div id="metric-matrix" class="metric metric--matrix" title="科研矩阵" data-page-node-id="IovVzpjV9tkP80FXWjUpSD">
-        <span class="metric-icon" data-page-node-id="VzM6ESDpKoiPVr9lrToNui">Σ</span>
-        <span class="metric-label" data-page-node-id="P8DH4IVW6Xagj2ipg72nBt">科研矩阵</span>
-        <div class="metric-badges" data-page-node-id="0lzbDz9aTgEAc5k1vd0q33"></div>
+      <div id="metric-matrix" class="metric metric--matrix" title="科研矩阵" data-page-node-id="J0iMbMMaGG4RnYShuiAL5G">
+        <span class="metric-icon" data-page-node-id="9DflRZjRyFNcMd4sf26Q6X">Σ</span>
+        <span class="metric-label" data-page-node-id="qZewWWzrVV90VzC5hcrPtf">科研矩阵</span>
+        <div class="metric-badges" data-page-node-id="uwGU8O75eaAaBsuoSczS5w"></div>
       </div>
-      <div id="metric-research" class="metric metric--research" title="当前研究" data-page-node-id="IQtV2OI2MoM7P7BfSURAAm">
-        <span class="metric-icon" data-page-node-id="ZidGFWvDmWVDAgfXm6rf62">🔬</span>
-        <span class="metric-label" data-page-node-id="pJfE8HLB7drLFBlmSg9eJ4">研究</span>
-        <strong class="metric-value" data-page-node-id="1thYte4RBMM9YNTpVTCJNl">--</strong>
-        <span class="metric-sub" data-page-node-id="laoQq4oPbi3zBINEEbijYA"><span class="progress research-progress" data-page-node-id="ZHqtSr20u7ahS2GABXaKEZ"><span class="progress-fill" data-page-node-id="D1lB3TUG5JksdcUJ3TRh85"></span></span></span>
+      <div id="metric-research" class="metric metric--research" title="当前研究" data-page-node-id="KEqZ3Yiquy4AjPABBaKzsM">
+        <span class="metric-icon" data-page-node-id="LXrWWQgIIPM7jBH6hqng3a">🔬</span>
+        <span class="metric-label" data-page-node-id="8ThPkNE0zUj7b8AKERVKKJ">研究</span>
+        <strong class="metric-value" data-page-node-id="0v8yBnPfa9ZkP1Aao5iZ3e">--</strong>
+        <span class="metric-sub" data-page-node-id="NBCwvd76K02QHhlas584g2"><span class="progress research-progress" data-page-node-id="USP7rw4gqK9ctDJpdm2oYH"><span class="progress-fill" data-page-node-id="6cu7ucTwvaXY5ebPlJFfTt"></span></span></span>
       </div>
-      <div id="metric-dyson" class="metric" title="戴森进度" data-page-node-id="1REi1WxdXzjdZ1a9sCHbef">
-        <span class="metric-icon" data-page-node-id="2tlxjYeKFSb9qoiDUySzmi">◉</span>
-        <span class="metric-label" data-page-node-id="GshKDuE4DT3xgTT5jOnE6P">戴森进度</span>
-        <strong class="metric-value" data-page-node-id="2NBv3sCaEm1EwhZ27KsnyW">--%</strong>
+      <div id="metric-dyson" class="metric" title="戴森进度" data-page-node-id="M2GeAL08yRoUi7SZhbM5m5">
+        <span class="metric-icon" data-page-node-id="U7AQ19hHNeamd3055aGLuQ">◉</span>
+        <span class="metric-label" data-page-node-id="CLa5CORIX1YQ25D3JyJK1x">戴森进度</span>
+        <strong class="metric-value" data-page-node-id="ANQ3gPk4LnX19Unso1frce">--%</strong>
       </div>
-      <div id="metric-time" class="metric" title="游戏时长" data-page-node-id="gOnzHWg3VdMcISpdBgiOS1">
-        <span class="metric-icon" data-page-node-id="5DfqCxvuK0Mdh1RbSUNMHl">⏱</span>
-        <span class="metric-label" data-page-node-id="QF3ZRodOUCg61IkthbIFa9">游戏时长</span>
-        <strong class="metric-value" data-page-node-id="eGpphj2AVebUrdCrX3JPg9">--:--:--</strong>
+      <div id="metric-time" class="metric" title="游戏时长" data-page-node-id="IjKhOHhKDIYQIdYoF2FCla">
+        <span class="metric-icon" data-page-node-id="mcvIJQKXHrKkEwa6SyfUdW">⏱</span>
+        <span class="metric-label" data-page-node-id="c1XaeiM8Cmfx9rTTkX8ce0">游戏时长</span>
+        <strong class="metric-value" data-page-node-id="vtKdRCFVyCY2gjH3ZfzSQk">--:--:--</strong>
       </div>
     </div>
-    <nav id="workspace-tabs" data-page-node-id="tVDDkticG5FjzC0iBvGlBu">
-      <button type="button" data-workspace="factory" data-page-node-id="5qvmaPEJCObA4yvAI5K0Nt">工厂</button>
-      <button type="button" data-workspace="galaxy" data-page-node-id="fYE9bNpmEu5BLy7aaNF8vn">星系</button>
-      <button type="button" data-workspace="technology" data-page-node-id="COfAGdJHO6jdT3yeGMuekp">科技</button>
-      <button type="button" data-workspace="statistics" data-page-node-id="FFqmB7rfLkDMQtfbn1yG4Y">统计</button>
-      <button type="button" data-workspace="dyson" data-page-node-id="tvqdRtBO6QwAHm4PImE8UU">戴森球</button>
-      <button type="button" data-workspace="codex" data-page-node-id="8xoaHzoz4DFWstp3uuLSPC">图鉴</button>
-      <button type="button" data-workspace="settings" data-page-node-id="E63ndpl6kYpubIw8H9USqw">设置</button>
+    <nav id="workspace-tabs" data-page-node-id="1f8lmEDLS2d9CStvNzYt9j">
+      <button type="button" data-workspace="factory" data-page-node-id="mXmrFZL1grXVFqyyTM5VXI">工厂</button>
+      <button type="button" data-workspace="galaxy" data-page-node-id="DmdiDyDcprNMzB3Wjf3YKv">星系</button>
+      <button type="button" data-workspace="technology" data-page-node-id="VarTK6ftbKsEiVRtWhiCCt">科技</button>
+      <button type="button" data-workspace="statistics" data-page-node-id="AXiHViWronBYz2BJ3IqtY1">统计</button>
+      <button type="button" data-workspace="dyson" data-page-node-id="g6Rku5t6MxTBTgFqsBs1Cx">戴森球</button>
+      <button type="button" data-workspace="codex" data-page-node-id="IjQmL3XhDicH4VbxrL76x9">图鉴</button>
+      <button type="button" data-workspace="settings" data-page-node-id="HxlTEqmgWnsP2F4GUyGmQE">设置</button>
     </nav>
-    <div class="topbar-actions" data-page-node-id="b5kUKjQdToVhOFOGy0GoEt">
-      <button id="btn-pause" type="button" title="暂停 / 继续" data-page-node-id="8afTZROKoqEZPdW5paTsBS">⏸</button>
-      <button id="btn-speed" type="button" title="游戏速度" data-page-node-id="WNOA2kXzxxYvSfebZOZm8o">×1</button>
-      <button id="btn-help" type="button" title="帮助" data-page-node-id="3bZLTikE51rq7ACDDNSNbr">?</button>
-      <button id="btn-menu" type="button" title="主菜单" data-page-node-id="ET0rvauJmIc8pauPDfj9YI">☰</button>
+    <div class="topbar-actions" data-page-node-id="hJfiN0ISkc1s0kIWLaXw2K">
+      <button id="btn-pause" type="button" title="暂停 / 继续" data-page-node-id="sdZCmG5ZTN4TnnyIolpg5g">⏸</button>
+      <button id="btn-speed" type="button" title="游戏速度" data-page-node-id="wKgPrmjFkZWougnnGv1Snp">×1</button>
+      <button id="btn-help" type="button" title="帮助" data-page-node-id="kdBCBTpkTsLrSMRVEYdDJ8">?</button>
+      <button id="btn-menu" type="button" title="主菜单" data-page-node-id="p8IzoqfDcEH1VcDrPn1uuA">☰</button>
     </div>
   </header>
 
   <!-- ======================= 左侧固定库存坞（常驻，拖放投放目标） ======================= -->
-  <aside id="stock-dock" data-page-node-id="szB3HbEQ7lQCN5LIAmFZO4">
-    <div id="stock" class="stock-dock-panel" data-page-node-id="hDkti6ifzLGr4AwDbL5UsX"></div>
+  <aside id="stock-dock" data-page-node-id="yB5A88rZnhnJwreNyrFa6e">
+    <div id="stock" class="stock-dock-panel" data-page-node-id="7BbGCQ0zAL9rG8OmeM1xmL"></div>
   </aside>
 
   <!-- ======================= 侧栏（建造面板 / 检查器） ======================= -->
-  <aside id="sidebar" data-page-node-id="SExYPhws8eT3F6VJKVNeiU">
-    <button id="sidebar-toggle" type="button" title="收起 / 展开侧栏" data-page-node-id="rYol2lIBlZkXnyErzNNLky">«</button>
-    <nav id="sidebar-tabs" class="sidebar-tabs" data-page-node-id="NNgh11bVXZomCMpLPzeFOV">
-      <button type="button" data-tab="palette" class="tab-btn active" data-page-node-id="XPmxYh6cjwjfXPw7Q1DNyc">建造</button>
-      <button type="button" data-tab="inspector" class="tab-btn" data-page-node-id="PGgya8o91HAGausqpaQf3e">详情</button>
+  <aside id="sidebar" data-page-node-id="6lOH7LsbiD5AWzpLRDhAXb">
+    <button id="sidebar-toggle" type="button" title="收起 / 展开侧栏" data-page-node-id="2DINJzW09OPEeWzR4JDvKZ">«</button>
+    <nav id="sidebar-tabs" class="sidebar-tabs" data-page-node-id="Ruv1fCsPZTp5l7d85SJQVl">
+      <button type="button" data-tab="palette" class="tab-btn active" data-page-node-id="hHONRNuxhASUKyqMwn0vBm">建造</button>
+      <button type="button" data-tab="inspector" class="tab-btn" data-page-node-id="2KSKjsdc49t2oUWTMLPsnx">详情</button>
     </nav>
-    <div id="sidebar-panels" data-page-node-id="hvmCTvMLTfhWAq0j7kc0rR">
-      <div id="palette" class="sidebar-section panel active-tab-panel" data-page-node-id="TNp3GFLNyvWUMqsDf6Rmqi"></div>
-      <div id="inspector" class="sidebar-section panel" data-page-node-id="jAn6fsspQT7Nmo5inJWO77"></div>
+    <div id="sidebar-panels" data-page-node-id="EAUaXB4wtNbpelVhYELuXM">
+      <div id="palette" class="sidebar-section panel active-tab-panel" data-page-node-id="Ikg5zik19063gu1meluYWh"></div>
+      <div id="inspector" class="sidebar-section panel" data-page-node-id="3bNaJ4njSAtQFkYnHJNlA8"></div>
     </div>
   </aside>
 
   <!-- ======================= 底部状态栏 ======================= -->
-  <footer id="statusbar" data-page-node-id="qQo4DawzawvVs85LsEtRjH">
-    <span id="mode-hint" data-page-node-id="IexfyE0N7iPmrh0BOc4tgT">选择模式</span>
-    <span id="stat-buildings" data-page-node-id="NCHM7YoJVSf1mGVu8GznMR">建筑 0</span>
-    <span id="stat-belts" data-page-node-id="ao9LHBf9484l4CUl36GoDP">传送带 0</span>
-    <span id="stat-zoom" data-page-node-id="AHHLL2S2MvtfJg4bISWxOx">缩放 100%</span>
-    <span id="stat-fps" data-page-node-id="iBje59drNQTfZFNZNdJACB">FPS --</span>
+  <footer id="statusbar" data-page-node-id="UG5kOYdvWOCyJDFO5YW4dW">
+    <span id="mode-hint" data-page-node-id="H7CdIdiv8aQ6p76aMNyJSV">选择模式</span>
+    <span id="stat-buildings" data-page-node-id="e6YvrbDjvuHNgeOFu3yDYr">建筑 0</span>
+    <span id="stat-belts" data-page-node-id="RQmwrEScQRVwsska0rLMfT">传送带 0</span>
+    <span id="stat-zoom" data-page-node-id="4ltAarBGujPUA73pdWneX0">缩放 100%</span>
+    <span id="stat-fps" data-page-node-id="0zD4unLlCjM2tdjnbVxyRH">FPS --</span>
   </footer>
 
   <!-- ============ 全屏工作区面板（factory 以外的 6 个，覆盖在画布之上） ============ -->
-  <div id="workspace-panel" data-page-node-id="BpyOeYR2Kw1Pnm7IeNG9El">
-    <section id="panel-galaxy" class="workspace-page" data-page-node-id="XC3Huf2dvBJZNmro8DUnIC"></section>
-    <section id="panel-technology" class="workspace-page" data-page-node-id="Q6W2CGpG0ct4npddszh58V"></section>
-    <section id="panel-statistics" class="workspace-page" data-page-node-id="yAD0JSQnLzwgscmfII8O05"></section>
-    <section id="panel-dyson" class="workspace-page" data-page-node-id="2hxQ6SZWjfj2NBzTP6XCjy"></section>
-    <section id="panel-codex" class="workspace-page" data-page-node-id="t5tQGJVj7DHfjqFRfaRiNn"></section>
-    <section id="panel-settings" class="workspace-page" data-page-node-id="OJ5h7jpcCwwZlDHvW9FymN"></section>
+  <div id="workspace-panel" data-page-node-id="QtGcYPhAaPB37coVx4OHix">
+    <section id="panel-galaxy" class="workspace-page" data-page-node-id="aNWLUwQ4ZiiDsiIyH0YDJK"></section>
+    <section id="panel-technology" class="workspace-page" data-page-node-id="PbaRRFDxKwLzyzl7Z65Id9"></section>
+    <section id="panel-statistics" class="workspace-page" data-page-node-id="E2rCjrhAtUPMnxfsM7uflE"></section>
+    <section id="panel-dyson" class="workspace-page" data-page-node-id="Jh18hwyNXy0hLIaxmrIy90"></section>
+    <section id="panel-codex" class="workspace-page" data-page-node-id="9p0itET8tLNcm1giG8auIQ"></section>
+    <section id="panel-settings" class="workspace-page" data-page-node-id="bA4rxLALHVBgMXXBq66co6"></section>
   </div>
 
   <!-- ======================= 主菜单覆盖层（显隐由 .overlay.open 类控制，DSP_UI 渲染槽位） ======================= -->
-  <div id="menu-overlay" class="overlay" data-page-node-id="EqXGtj4khwXAEjLGF0985e">
-    <div class="overlay-card" data-page-node-id="qoX6uUCcMzXaovAzyidG4A">
-      <h2 data-page-node-id="mQm1WBri2EFNCigUve6poF">星穹工厂</h2>
-      <p class="menu-sub" data-page-node-id="05beBOQv2WHQNIggfY1cUq">重启跨恒星文明，从一条矿脉开始。</p>
-      <div id="save-slots" class="menu-slots-section" data-page-node-id="wpClyef8VQsBmZZ0uMGnDW"></div>
-      <div class="menu-new-section" data-page-node-id="nYCbErCxUIkvFFOT3EYePo">
-        <button id="btn-new-save" type="button" class="btn btn-primary btn-block" data-page-node-id="fh7zmFnTnM4QFQs3eXOusS">新建工厂</button>
+  <div id="menu-overlay" class="overlay" data-page-node-id="6q4hm6H3cKp8TRLO97YKhx">
+    <div class="overlay-card" data-page-node-id="NVeoAjPECKBQHD4IScwBox">
+      <h2 data-page-node-id="IVN9fc38AsK2IrCJcuxwRy">星穹工厂</h2>
+      <p class="menu-sub" data-page-node-id="qhFFayCs9cxJtKOKQe93Ln">重启跨恒星文明，从一条矿脉开始。</p>
+      <div id="save-slots" class="menu-slots-section" data-page-node-id="aIKC2wnhWEvqxxpNz3BNCM"></div>
+      <div class="menu-new-section" data-page-node-id="wtLabItfZrGt2Toxm1GeLT">
+        <button id="btn-new-save" type="button" class="btn btn-primary btn-block" data-page-node-id="ZISDPhyr1H6bip84eGBsQB">新建工厂</button>
       </div>
-      <div class="menu-buttons" data-page-node-id="qBaFtlNq7hFOEmFQgIprG2">
-        <button id="btn-export" type="button" class="btn" data-page-node-id="fg1EZDxAe4GsezeblHhpar">导出存档</button>
-        <button id="btn-import" type="button" class="btn" data-page-node-id="U4LqQWmBhgRq8qb58tfkHX">导入存档</button>
-        <input id="import-file" type="file" accept="application/json,.json" style="display:none" data-page-node-id="TwDRIBZ55dQm4qfwFONEY9">
+      <div class="menu-buttons" data-page-node-id="C1xlRFsZFfJuQGNGGvaSxh">
+        <button id="btn-export" type="button" class="btn" data-page-node-id="E8hVnzwdUcYsfHZGqvimDt">导出存档</button>
+        <button id="btn-import" type="button" class="btn" data-page-node-id="Qi6wcPzigu2uNADJEYYGHG">导入存档</button>
+        <input id="import-file" type="file" accept="application/json,.json" style="display:none" data-page-node-id="YfK9tEPyd2sd1B0NiWj7tR">
       </div>
-      <button id="btn-close-menu" type="button" class="btn btn-primary btn-block" data-page-node-id="ulWT7sK6mZE6vHBYFCLEAC">继续游戏</button>
+      <button id="btn-close-menu" type="button" class="btn btn-primary btn-block" data-page-node-id="8IOaRbEfJu3oDayVRu8l90">继续游戏</button>
     </div>
   </div>
 
   <!-- ======================= 帮助覆盖层（内容由 DSP_I18N/DSP_UI 渲染） ======================= -->
-  <div id="help-overlay" class="overlay" data-page-node-id="ijqQc75NHomxuv2vuQI2zI">
-    <div class="overlay-card" data-page-node-id="iPwiNHsf2ZTcoatAOzefRu">
-      <h2 data-page-node-id="EqTeYU4K636gyw5EAYmaVh">操作说明</h2>
-      <div class="help-body" data-page-node-id="hhXzppQWdsPPkiaOCLna7C">
-        <p class="help-goal" data-page-node-id="69il3AyoNiPoNPJAK59TUC">重建跨恒星工厂：采矿 → 熔炼 → 制造 → 科研矩阵 → 戴森球。</p>
-        <div class="help-line" data-page-node-id="DPd1AripbPT3dewvyDmk5G"><span class="help-bullet" data-page-node-id="EpevQpElGcyN9863HxYj87">•</span><span data-page-node-id="DtKMXlHYjWKylWeGznKFpU">拖拽画布平移视野，双指捏合或滚轮缩放。</span></div>
-        <div class="help-line" data-page-node-id="jmQ6ioFFW1pCTlCdEtZFDs"><span class="help-bullet" data-page-node-id="AUCnzsEOQbKEheSj8c0DbB">•</span><span data-page-node-id="kMk7HlELiLOsx6fDDg1nDd">在左侧建造面板选择建筑，点击矿脉或空地放置。</span></div>
-        <div class="help-line" data-page-node-id="RbG4NRcNVr620gzCxP4oEl"><span class="help-bullet" data-page-node-id="iU8q9OC54EoSJBH0il0Kk2">•</span><span data-page-node-id="8iSFwmyIGP6aK5rJw7Qeio">拖拽建筑端口连接传送带；点击建筑卡上的配方行（名称 + ▾）可直接选配方，也可在右侧详情面板选择。</span></div>
-        <div class="help-line" data-page-node-id="HYFBiecwIOHFhHSIBehmRh"><span class="help-bullet" data-page-node-id="qN2EqGN9odFFB26atZVTJG">•</span><span data-page-node-id="xy229HmPgmsIF63pcMEMdE">拖拽空白处即可框选（可框中传送带）；平移视野用右键/中键拖拽或双指。</span></div>
-        <div class="help-line" data-page-node-id="xm1atShXLHcTM48jVX6ME7"><span class="help-bullet" data-page-node-id="VKWGyM7fUShIaZQh3NOmKy">•</span><span data-page-node-id="fEzgVneGMcwtRDZEKuPCtM">研究站产出的科研矩阵直接汇入研究库存。</span></div>
-        <div class="help-line" data-page-node-id="KExAR3ncj06jZvwOntF9hC"><span class="help-bullet" data-page-node-id="sRs5eQnFtciSeq8JFBX9qj">•</span><span data-page-node-id="6EanZk1l0AsdF5P3SHyxwN">电力不足时按发电比例降速，注意扩建电源。</span></div>
+  <div id="help-overlay" class="overlay" data-page-node-id="1w7hr6ZhqliYL4FYAqHTgK">
+    <div class="overlay-card" data-page-node-id="AxY7XKSNYeMzu54bivkTvk">
+      <h2 data-page-node-id="IqmfALlRoBsHhOHKM5AAZq">操作说明</h2>
+      <div class="help-body" data-page-node-id="AwdEPdPItkbpk1P3lrFZOU">
+        <p class="help-goal" data-page-node-id="dk7e7RDjEUFZtlyd9vtLYF">重建跨恒星工厂：采矿 → 熔炼 → 制造 → 科研矩阵 → 戴森球。</p>
+        <div class="help-line" data-page-node-id="gT5t04vyQY3TFF5ntdxdb6"><span class="help-bullet" data-page-node-id="yiTixFfxQfjqnn1iwe6tOG">•</span><span data-page-node-id="hF9EGyxHTtDFYSvcklHlQ3">拖拽画布平移视野，双指捏合或滚轮缩放。</span></div>
+        <div class="help-line" data-page-node-id="xNuUivYRekvW0FMQqYpsjP"><span class="help-bullet" data-page-node-id="UNksaO9t3zgxsqwiO4r8of">•</span><span data-page-node-id="mdtg2im69MCD7Zq5GoDH1O">在左侧建造面板选择建筑，点击矿脉或空地放置。</span></div>
+        <div class="help-line" data-page-node-id="FWORJMEP9p5D4xGcfhZpJG"><span class="help-bullet" data-page-node-id="R09ktFuUFXAT0mChxBawd8">•</span><span data-page-node-id="tdnuGi0mcKxk5MT8C68sVm">拖拽建筑端口连接传送带；点击建筑卡上的配方行（名称 + ▾）可直接选配方，也可在右侧详情面板选择。</span></div>
+        <div class="help-line" data-page-node-id="ymqeLgATptP7mMisBTykPR"><span class="help-bullet" data-page-node-id="fV08KPPXdpsxcgaqPYIAnf">•</span><span data-page-node-id="C6zRFVQX7SPpYuLNDajPfR">拖拽空白处即可框选（可框中传送带）；平移视野用右键/中键拖拽或双指。</span></div>
+        <div class="help-line" data-page-node-id="p8EPvB1SvaG5zfUnDXi9B6"><span class="help-bullet" data-page-node-id="iy5E9dxGZULcdMHDs9fXI2">•</span><span data-page-node-id="FqbThoqDr5jon0UF7PEd8c">研究站产出的科研矩阵直接汇入研究库存。</span></div>
+        <div class="help-line" data-page-node-id="EHfYWLqzgtXBYqT7DMT4py"><span class="help-bullet" data-page-node-id="eaQpM7JyzIkiBm06WLirYm">•</span><span data-page-node-id="7NlnFLCZ6Xe4KAPh9xXBwA">电力不足时按发电比例降速，注意扩建电源。</span></div>
       </div>
-      <button id="btn-close-help" type="button" class="btn btn-primary" data-page-node-id="DlHYqjKjX9GMBzC7uqZSjJ">知道了</button>
+      <button id="btn-close-help" type="button" class="btn btn-primary" data-page-node-id="jHWFa5T08IEPjDOegiCZtl">知道了</button>
     </div>
   </div>
 
   <!-- ======================= 离线结算覆盖层（报告由 DSP_UI.showOffline 渲染） ======================= -->
-  <div id="offline-overlay" class="overlay" data-page-node-id="nFvGcyNoEdoOktlGr777Xc">
-    <div class="overlay-card" data-page-node-id="D1T8GCmAcwdDBqGplDcjWF">
-      <h2 data-page-node-id="Pz4NIUaJ5baTCZ59Oi0ze8">离线产出报告</h2>
-      <div id="offline-report" data-page-node-id="5GU0DqJsMnO8U54DXFpPMe"></div>
-      <button id="btn-close-offline" type="button" class="btn btn-primary" data-page-node-id="mINHkqNcTrBbgvI9rPOPuv">收下</button>
+  <div id="offline-overlay" class="overlay" data-page-node-id="JthYALVdBnNCkH7CJWMh6N">
+    <div class="overlay-card" data-page-node-id="P0rZDTGFGRyhdfXouvorFU">
+      <h2 data-page-node-id="i9W8OL4HxjG6qH3qLcfAKT">离线产出报告</h2>
+      <div id="offline-report" data-page-node-id="voIQpn39MFW6Myof3BovVY"></div>
+      <button id="btn-close-offline" type="button" class="btn btn-primary" data-page-node-id="sRkvxCkFZcQtt4YUxyBYWF">收下</button>
     </div>
   </div>
 
   <!-- Toast 通知宿主 -->
-  <div id="toast-host" data-page-node-id="dKIPbIyJgyRP2rGUGrpWrU"></div>
+  <div id="toast-host" data-page-node-id="r2HFNvgIQ1ZHihH3Qp3gCG"></div>
 
   <!-- ============ 经典脚本按依赖顺序加载（顺序即契约，禁止改动） ============
        content → engine → i18n → camera → renderer → input → ui → storage → main -->
