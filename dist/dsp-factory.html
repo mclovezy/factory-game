@@ -327,14 +327,16 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .metric-sub {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  grid-column: 2; /* 显式钉在第 2 列：自动放置会把第 4 个子元素塞进 24px 图标列 */
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 10px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.metric-sub .grid-chip { font-size: 9px; padding: 0 4px; }
 .metric--matrix { min-width: 190px; flex: 1.5 1 0; }
 .metric-badges {
   display: flex;
@@ -831,17 +833,6 @@ body.workspace-open #workspace-panel { right: 0; }
 .grid-btn.active.grid-a { background: #2e7d32; color: #fff; border-color: #2e7d32; }
 .grid-btn.active.grid-b { background: #1565c0; color: #fff; border-color: #1565c0; }
 .grid-btn.active.grid-c { background: #ad1457; color: #fff; border-color: #ad1457; }
-
-/* 顶栏分电网小标 */
-.grid-chip {
-  margin-left: 6px; padding: 1px 6px; font-size: 11px; font-weight: 700;
-  border-radius: 5px; border: 1px solid var(--border); color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-.grid-chip.grid-a { border-color: #2e7d32; color: #6fcf73; }
-.grid-chip.grid-b { border-color: #1565c0; color: #5aa0f0; }
-.grid-chip.grid-c { border-color: #ad1457; color: #f06aa0; }
-.grid-chip.low { background: var(--bad-dim); color: var(--bad); border-color: var(--bad); }
 
 .insp-empty, .inspector-empty { padding: 8px 0; font-size: 13px; }
 .inspector-hint { font-size: 12px; }
@@ -12383,7 +12374,7 @@ html[data-theme='light'] .badge-current { color: #fff; }
       }
     }
 
-    // —— 顶栏电力（大数值指标卡 + 分电网芯片）——
+    // —— 顶栏电力（大数值指标卡；A/B/C 分电网明细放 tooltip，卡内放不下）——
     var powerEl = $('metric-power');
     if (powerEl) {
       var pw = { demandKw: 0, generationKw: 0, ratio: 1, grids: { a: { ratio: 1 }, b: { ratio: 1 }, c: { ratio: 1 } } };
@@ -12397,20 +12388,19 @@ html[data-theme='light'] .badge-current { color: #fff; }
       if (subEl) {
         clear(subEl);
         subEl.appendChild(document.createTextNode(fmtKw(pw.generationKw || 0) + ' / ' + fmtKw(pw.demandKw || 0)));
-        var gKeys = ['a', 'b', 'c'];
-        for (var gk = 0; gk < gKeys.length; gk++) {
-          var gk2 = gKeys[gk];
-          var gr = (pw.grids && pw.grids[gk2]) ? pw.grids[gk2] : { ratio: 1 };
-          var chip = h('span', 'grid-chip grid-' + gk2 + (gr.ratio < 0.999 && gr.demandKw > 0 ? ' low' : ''));
-          chip.textContent = gk2.toUpperCase() + ' ' + Math.round(gr.ratio * 100) + '%';
-          chip.title = I18N.t('topbar.grid', { g: gk2.toUpperCase() }) + ' · ' + Math.round(gr.ratio * 100) + '%';
-          subEl.appendChild(chip);
-        }
+      }
+      var gridParts = [];
+      var gKeys = ['a', 'b', 'c'];
+      for (var gk = 0; gk < gKeys.length; gk++) {
+        var gk2 = gKeys[gk];
+        var gr = (pw.grids && pw.grids[gk2]) ? pw.grids[gk2] : { ratio: 1 };
+        gridParts.push(I18N.t('topbar.grid', { g: gk2.toUpperCase() }) + ' ' + Math.round(gr.ratio * 100) + '%');
       }
       powerEl.classList.remove('tone-positive', 'tone-warning', 'tone-negative');
       if (ratio < 0.999 && hasDemand) powerEl.classList.add('tone-negative');
       else if (hasDemand) powerEl.classList.add('tone-positive');
-      powerEl.title = I18N.t('topbar.power') + ' · ' + Math.round(ratio * 100) + '%';
+      powerEl.title = I18N.t('topbar.power') + ' · ' + Math.round(ratio * 100) + '%' +
+        (gridParts.length ? '\n' + gridParts.join('\n') : '');
     }
 
     // —— 顶栏矩阵（徽章行）——

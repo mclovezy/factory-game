@@ -3710,7 +3710,7 @@
       }
     }
 
-    // —— 顶栏电力（大数值指标卡 + 分电网芯片）——
+    // —— 顶栏电力（大数值指标卡；A/B/C 分电网明细放 tooltip，卡内放不下）——
     var powerEl = $('metric-power');
     if (powerEl) {
       var pw = { demandKw: 0, generationKw: 0, ratio: 1, grids: { a: { ratio: 1 }, b: { ratio: 1 }, c: { ratio: 1 } } };
@@ -3724,20 +3724,19 @@
       if (subEl) {
         clear(subEl);
         subEl.appendChild(document.createTextNode(fmtKw(pw.generationKw || 0) + ' / ' + fmtKw(pw.demandKw || 0)));
-        var gKeys = ['a', 'b', 'c'];
-        for (var gk = 0; gk < gKeys.length; gk++) {
-          var gk2 = gKeys[gk];
-          var gr = (pw.grids && pw.grids[gk2]) ? pw.grids[gk2] : { ratio: 1 };
-          var chip = h('span', 'grid-chip grid-' + gk2 + (gr.ratio < 0.999 && gr.demandKw > 0 ? ' low' : ''));
-          chip.textContent = gk2.toUpperCase() + ' ' + Math.round(gr.ratio * 100) + '%';
-          chip.title = I18N.t('topbar.grid', { g: gk2.toUpperCase() }) + ' · ' + Math.round(gr.ratio * 100) + '%';
-          subEl.appendChild(chip);
-        }
+      }
+      var gridParts = [];
+      var gKeys = ['a', 'b', 'c'];
+      for (var gk = 0; gk < gKeys.length; gk++) {
+        var gk2 = gKeys[gk];
+        var gr = (pw.grids && pw.grids[gk2]) ? pw.grids[gk2] : { ratio: 1 };
+        gridParts.push(I18N.t('topbar.grid', { g: gk2.toUpperCase() }) + ' ' + Math.round(gr.ratio * 100) + '%');
       }
       powerEl.classList.remove('tone-positive', 'tone-warning', 'tone-negative');
       if (ratio < 0.999 && hasDemand) powerEl.classList.add('tone-negative');
       else if (hasDemand) powerEl.classList.add('tone-positive');
-      powerEl.title = I18N.t('topbar.power') + ' · ' + Math.round(ratio * 100) + '%';
+      powerEl.title = I18N.t('topbar.power') + ' · ' + Math.round(ratio * 100) + '%' +
+        (gridParts.length ? '\n' + gridParts.join('\n') : '');
     }
 
     // —— 顶栏矩阵（徽章行）——

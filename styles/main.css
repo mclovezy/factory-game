@@ -317,14 +317,16 @@ input[type="text"]:focus, select:focus { border-color: var(--accent); }
   font-variant-numeric: tabular-nums;
 }
 .metric-sub {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  grid-column: 2; /* 显式钉在第 2 列：自动放置会把第 4 个子元素塞进 24px 图标列 */
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 10px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.metric-sub .grid-chip { font-size: 9px; padding: 0 4px; }
 .metric--matrix { min-width: 190px; flex: 1.5 1 0; }
 .metric-badges {
   display: flex;
@@ -821,17 +823,6 @@ body.workspace-open #workspace-panel { right: 0; }
 .grid-btn.active.grid-a { background: #2e7d32; color: #fff; border-color: #2e7d32; }
 .grid-btn.active.grid-b { background: #1565c0; color: #fff; border-color: #1565c0; }
 .grid-btn.active.grid-c { background: #ad1457; color: #fff; border-color: #ad1457; }
-
-/* 顶栏分电网小标 */
-.grid-chip {
-  margin-left: 6px; padding: 1px 6px; font-size: 11px; font-weight: 700;
-  border-radius: 5px; border: 1px solid var(--border); color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-.grid-chip.grid-a { border-color: #2e7d32; color: #6fcf73; }
-.grid-chip.grid-b { border-color: #1565c0; color: #5aa0f0; }
-.grid-chip.grid-c { border-color: #ad1457; color: #f06aa0; }
-.grid-chip.low { background: var(--bad-dim); color: var(--bad); border-color: var(--bad); }
 
 .insp-empty, .inspector-empty { padding: 8px 0; font-size: 13px; }
 .inspector-hint { font-size: 12px; }
